@@ -12,6 +12,7 @@
   v.addEventListener('playing',()=>{if(v!==current())return;playing=true;screen.classList.remove('loading');$('enable-audio').hidden=true;$('media-status').textContent='Playing automatically · next song follows';});
   v.addEventListener('waiting',()=>{if(v!==current())return;playing=false;screen.classList.add('loading');$('media-status').textContent='Loading the preview…';});
   v.addEventListener('pause',()=>{if(v===current())playing=false;});
+  v.addEventListener('timeupdate',()=>{if(v===current()&&running&&!paused&&!inspecting&&v.currentTime>=8)next();});
   v.addEventListener('ended',()=>{if(v!==current())return;if(inspecting){v.currentTime=0;play();}else next();});
   v.addEventListener('error',()=>{if(v!==current())return;playing=false;screen.classList.remove('loading');$('media-status').textContent='Preview unavailable. Retry below or tap the video to watch on YouTube.';$('enable-audio').hidden=false;$('enable-audio').textContent='Retry preview';});
  });
@@ -40,7 +41,7 @@
  const canvas=$('space'),ctx=canvas.getContext('2d');let w,h;const stars=Array.from({length:70},()=>({x:Math.random()*2-1,y:Math.random()*2-1,z:Math.random()*2+.1}));
  function size(){w=innerWidth;h=innerHeight;const ratio=Math.min(devicePixelRatio||1,2);canvas.width=w*ratio;canvas.height=h*ratio;ctx.setTransform(ratio,0,0,ratio,0,0);}size();addEventListener('resize',size);
  function frame(now){const dt=Math.min((now-last)/1000,.05)||0;last=now;ctx.clearRect(0,0,w,h);
-  if(running){const v=current(),t=v.currentTime,d=Number.isFinite(v.duration)?v.duration:12;if(playing&&!paused)transition+=dt;
+  if(running){const v=current(),t=v.currentTime,d=Math.min(Number.isFinite(v.duration)?v.duration:8,8);if(playing&&!paused)transition+=dt;
    const enter=Math.min(1,transition/1.6),leave=inspecting||index===tracks.length-1?0:Math.max(0,(t-(d-3.2))/3.2),ease=leave*leave*(3-2*leave),nextIndex=Math.min(index+1,tracks.length-1);
    // Bend beyond the screen edge before crossing its depth, then settle at the next screen.
    const arc=Math.pow(Math.sin(Math.PI*ease),2),clearance=screen.clientWidth*1.15+520,side=index%2?1:-1;

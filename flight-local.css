@@ -36,3 +36,6 @@ body.previewing #inspect span{background:#000b;margin:4px;padding:8px 12px}
 .flight-panel:focus-visible{outline:2px solid #ff3038;outline-offset:-3px}
 @media(hover:none){.flight-panel:after{opacity:1}}
 #watch[hidden]{display:none!important}
+
+/* Keep the experience focused on the clip and its title. */
+.route-status,.screen-top,.screen-bottom,.flight-panel:after{display:none!important}
