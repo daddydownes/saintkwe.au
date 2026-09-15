@@ -60,6 +60,9 @@ html{scrollbar-gutter:stable}
 html.kwe-intro-pending,html.kwe-intro-pending body{overflow:hidden;overscroll-behavior:none;touch-action:pinch-zoom}
 /* Keep the existing composition within both the page cap and short windows. */
 .wordmark-stage h1{font-size:min(20vw,360px,36svh)}
+/* No fallback ink while the masked footage and font initialize. */
+.kwe-intro-pending:not(.kwe-intro-exiting) .wordmark-stage h1{color:transparent}
+@media(prefers-reduced-motion:reduce){.mock-settled .wordmark-stage{display:flex!important}}
 /* Service marks scale with the screen while retaining the selected triangle. */
 body[data-front='3'] .hero .platform-group{width:clamp(360px,30vw,540px);max-width:85vw}
 body[data-front='3'] .hero .platform-link{--icon-size:clamp(60px,4vw,80px);min-height:calc(var(--icon-size) + 34px);padding:0;gap:10px}
@@ -73,7 +76,7 @@ body[data-front='3'] .hero .platform-link{--icon-size:clamp(60px,4vw,80px);min-h
 }
 </style>
 </head>
-<body data-front="3"><script src="intro-selected.js?v=responsive-refinement-1"></script><a class="skip" href="#main">Skip to content</a>
+<body data-front="3"><script src="intro-selected.js?v=clean-refresh-20260916"></script><a class="skip" href="#main">Skip to content</a>
 
 <main id="main">
 <section class="hero" aria-labelledby="artist"><div class="front-visual" aria-hidden="true"><img src="assets/concert-cultrd-125-full.jpg" alt="" fetchpriority="high" decoding="async"></div><div class="wordmark-stage"><h1 id="artist">SAINT KWE</h1><button class="wordmark-motion" type="button" hidden>Pause motion</button><a class="wordmark-scroll" href="#listen">SCROLL TO LISTEN <span aria-hidden="true">↓</span></a></div><div class="hero-grid" id="listen" role="region" aria-label="Listen on these platforms" tabindex="-1"><div class="hero-copy"><div class="platform-group"><div class="platform-links"><a class="platform-link" href="https://music.apple.com/au/album/529/6788612666" aria-label="Apple Music" title="Apple Music" style="--link-order:0"><span class="platform-art"><img src="assets/apple-music-color.svg" alt="" width="32" height="32"></span><span>Apple Music</span></a><a class="platform-link" href="https://open.spotify.com/album/1tXWlbsSiI3O5Lf4TgTcnV" aria-label="Spotify" title="Spotify" style="--link-order:1"><span class="platform-art"><img src="assets/spotify-color.svg" alt="" width="32" height="32"></span><span>Spotify</span></a><a class="platform-link" href="https://www.youtube.com/@saintkwe/videos" aria-label="YouTube" title="YouTube" style="--link-order:2"><span class="platform-art"><img src="assets/youtube-color.png" alt="" width="32" height="32"></span><span>YouTube</span></a></div></div><a class="flight-launch" href="flight.html?launch=1">Enter the KWE experience <span aria-hidden="true">↗</span></a><a class="scroll-cue scroll-cue-clean" href="#music" aria-label="Scroll down to music"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></a></div><figure class="hero-portrait"><span class="media-frame"><img src="assets/hero-1280.jpg" srcset="assets/hero-640.jpg 640w, assets/hero-1280.jpg 1280w" sizes="(max-width:600px) 90vw, 55vw" width="1280" height="1280" alt="Black-and-white profile portrait of Kwe wearing a cap" fetchpriority="high"></span></figure></div></section>

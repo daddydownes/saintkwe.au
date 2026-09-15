@@ -35,7 +35,8 @@
  $('watch').addEventListener('click',()=>pause(true));
  function motion(){ $('motion').textContent=reduced?'Motion off':'Reduce motion';$('motion').setAttribute('aria-pressed',String(reduced));}
  $('motion').addEventListener('click',()=>{reduced=!reduced;motion();});query.addEventListener('change',e=>{reduced=e.matches;motion();});motion();
- document.addEventListener('visibilitychange',()=>{if(running)pause(document.hidden);});window.addEventListener('pagehide',()=>videos.forEach(v=>v.pause()));document.addEventListener('keydown',e=>{if(e.key==='Escape'){videos.forEach(v=>v.pause());location.href='index.html#listen';}});
+ let resumeAfterVisibility=false;
+ document.addEventListener('visibilitychange',()=>{if(!running)return;if(document.hidden){resumeAfterVisibility=!paused;if(resumeAfterVisibility)pause(true);}else if(resumeAfterVisibility){resumeAfterVisibility=false;pause(false);}});window.addEventListener('pagehide',()=>videos.forEach(v=>v.pause()));document.addEventListener('keydown',e=>{if(e.key==='Escape'){videos.forEach(v=>v.pause());location.href='index.html#listen';}});
  const canvas=$('space'),ctx=canvas.getContext('2d');let w,h;const stars=Array.from({length:70},()=>({x:Math.random()*2-1,y:Math.random()*2-1,z:Math.random()*2+.1}));
  function size(){w=innerWidth;h=innerHeight;const ratio=Math.min(devicePixelRatio||1,2);canvas.width=w*ratio;canvas.height=h*ratio;ctx.setTransform(ratio,0,0,ratio,0,0);}size();addEventListener('resize',size);
  function frame(now){const dt=Math.min((now-last)/1000,.05)||0;last=now;ctx.clearRect(0,0,w,h);

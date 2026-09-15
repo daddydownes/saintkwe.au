@@ -2,8 +2,15 @@
 (() => {
  'use strict';
  const root=document.documentElement;
+ const reloading=performance.getEntriesByType('navigation')[0]?.type==='reload';
+ if(reloading){
+  history.scrollRestoration='manual';
+  if(location.hash)history.replaceState(history.state,'',location.pathname+location.search);
+  window.scrollTo({top:0,left:0,behavior:'instant'});
+  document.addEventListener('DOMContentLoaded',()=>window.scrollTo({top:0,left:0,behavior:'instant'}),{once:true});
+ }
  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
- const eligible=!reduced.matches&&!location.hash&&scrollY<2&&!document.hidden;
+ const eligible=!reduced.matches&&!location.hash&&(reloading||scrollY<2)&&!document.hidden;
  if(!eligible){root.classList.add('mock-settled');return;}
  root.classList.add('kwe-intro-pending');
  let video,hold,deadline,cleanup,maskFrame=0,resizeObserver,finished=false,holdStarted=false;
@@ -35,13 +42,14 @@
    if(finished)return;
    root.dataset.introPhase='rising';root.classList.add('kwe-intro-exiting');
    cleanup=setTimeout(()=>finish(),1900);
-  },3000);
+  },2000);
  }
  // Fail open even if fonts, playback or a later script never become ready.
  deadline=setTimeout(beginHold,2500);
  inputs.forEach(type=>window.addEventListener(type,finish,{capture:true,passive:true}));
  document.addEventListener('visibilitychange',hide);reduced.addEventListener('change',finish);
  async function start() {
+  if(reloading)window.scrollTo({top:0,left:0,behavior:'instant'});
   const heading=document.querySelector('.wordmark-stage h1');
   const listen=document.getElementById('listen');
   try {
@@ -50,6 +58,7 @@
    listen.inert=true;
    inertElements=[...document.querySelectorAll('main > :not(.hero),footer')].map(element=>[element,element.inert]);
    inertElements.forEach(([element])=>element.inert=true);
+   await document.fonts.load('900 100px "Barlow Condensed"');
    await document.fonts.ready;
    if(finished||root.classList.contains('kwe-intro-exiting'))return;
    video=document.createElement('video');video.className='kwe-wordmark-video';
