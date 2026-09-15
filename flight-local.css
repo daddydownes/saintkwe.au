@@ -1,0 +1,38 @@
+/* Reserve distinct video, caption and control areas at every viewport height. */
+#journey{display:flex;flex-direction:column;padding:110px 5% 30px;gap:12px;height:100svh;overflow:hidden}
+.screen{position:relative;top:auto;left:auto;flex:1;min-height:100px;width:100%;max-width:1100px;align-self:center;display:flex;flex-direction:column;transform:none;background:transparent;box-shadow:none}
+.screen-media{flex:1;min-height:0;aspect-ratio:auto;overflow:hidden;background:#000}
+.screen-top,.screen-bottom{flex:none;background:transparent;height:20px}
+#player-wrap{background:transparent}
+#player-wrap{perspective:750px;perspective-origin:50% 50%;overflow:hidden}
+.flight-camera{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform}
+.flight-panel{position:absolute;inset:0;backface-visibility:hidden;background:#000}
+.flight-panel img,#player-wrap video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
+#poster{visibility:hidden}
+#poster{object-fit:contain;transition:filter .3s,opacity .3s}
+.screen.loading #poster{filter:blur(12px);opacity:.45}
+.screen.loading .screen-media:after{content:'';position:absolute;width:28px;height:28px;left:calc(50% - 14px);top:calc(50% - 14px);border:2px solid #ffffff30;border-top-color:#ff3038;border-radius:50%;animation:load-spin .8s linear infinite;pointer-events:none}
+.track-caption{position:relative;left:auto;right:auto;bottom:auto;flex:none;padding:0;text-align:center}
+.track-caption h2{font-size:clamp(28px,4vw,48px);margin:0}
+.track-caption .eyebrow:empty{display:none}
+.track-caption p:not(.eyebrow){margin:4px 0;font-size:11px}
+.track-caption a,.track-caption button{min-height:36px}
+.flight-controls{position:relative;left:auto;right:auto;bottom:auto;flex:none;gap:8px;margin:0;flex-wrap:wrap}
+.route-status{top:80px}.memory{display:block;pointer-events:none}.track-caption,.flight-controls{z-index:4;background:linear-gradient(transparent,#000 22%)}
+body.previewing #inspect span{background:#000b;margin:4px;padding:8px 12px}
+.arrival{overflow:auto}.arrival>a,.arrival>button{min-height:44px;flex-shrink:0}
+@keyframes load-spin{to{transform:rotate(360deg)}}
+@media(max-width:600px){#journey{padding:94px 4% 24px;gap:8px}.route-status{top:68px}.track-caption h2{font-size:30px}.flight-controls{gap:2px}.flight-controls button{padding:6px 8px}.screen-top,.screen-bottom{font-size:8px}.track-caption p:not(.eyebrow){font-size:10px}#player-wrap video,#poster{object-fit:cover}}
+@media(max-height:500px) and (min-width:601px){#journey{padding:76px 5% 20px;gap:5px}.route-status{top:58px}.track-caption h2{font-size:24px}.track-caption p:not(.eyebrow){display:none}.screen-top,.screen-bottom{display:none}.track-caption a{min-height:28px}.flight-controls button{min-height:36px}.arrival{justify-content:flex-start}}
+@media(prefers-reduced-motion:reduce){.screen.loading .screen-media:after{animation:none}.screen{transform:none!important}#poster{transition:none}}
+@media(max-width:600px){.flight-panel img{object-fit:cover}}
+/* The flight is the visual; keep the surrounding black space quiet. */
+#space,#world,.ambient,.flight-controls,#inspect,.timeline{display:none!important}
+.exit{color:#fff;font-size:13px;padding:0 16px;min-height:44px;background:#171717;border-radius:3px}
+.track-caption{padding-bottom:8px}
+.flight-panel{cursor:pointer;display:block}
+.flight-panel:after{content:'Watch full video ↗';position:absolute;bottom:14px;right:14px;padding:8px 12px;background:#000b;color:#fff;font-size:12px;opacity:0;transition:opacity .18s;pointer-events:none}
+.flight-panel:hover:after,.flight-panel:focus-visible:after{opacity:1}
+.flight-panel:focus-visible{outline:2px solid #ff3038;outline-offset:-3px}
+@media(hover:none){.flight-panel:after{opacity:1}}
+#watch[hidden]{display:none!important}

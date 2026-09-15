@@ -1,0 +1,53 @@
+/* Black opening; the services are the destination, with one quiet white label. */
+
+.hero{position:relative;display:block;min-height:100svh;padding:0}
+.wordmark-stage{display:none;position:absolute;inset:0;z-index:20;min-height:100%;padding:40px 5%;align-items:center;justify-content:center;pointer-events:none}.wordmark-stage::before{content:"";position:absolute;inset:0;background:#000}.kwe-intro-pending .wordmark-stage{display:flex}.wordmark-motion{pointer-events:auto}
+.wordmark-stage h1{position:relative;width:100%;margin:0;text-align:center;line-height:1.06}
+.has-wordmark-video{color:transparent}
+.kwe-wordmark-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;mask-size:100% 100%;-webkit-mask-size:100% 100%;mask-repeat:no-repeat;-webkit-mask-repeat:no-repeat;pointer-events:none;filter:brightness(1.25)}
+.wordmark-scroll{display:none!important;position:absolute;bottom:max(30px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);min-height:44px;display:flex;align-items:center;gap:18px;white-space:nowrap;font-size:12px;letter-spacing:.08em;color:#c9c9c9}
+.wordmark-scroll span{font-size:24px;color:#d5cee4}
+.wordmark-motion{position:absolute;right:5%;bottom:30px;border:0;background:transparent;color:#a8a8a8;font-size:11px;min-height:44px;padding:8px}
+.wordmark-motion[hidden]{display:none}
+.hero .hero-grid{min-height:100svh;padding:32px 5% max(24px,env(safe-area-inset-bottom));scroll-margin-top:0;background:#000}
+.hero .hero-copy{position:relative;justify-content:center;padding:70px 0 110px;gap:0}
+.hero .platform-group{width:100%;margin:0}
+.hero .platform-label{font:400 18px/1.4 var(--body);letter-spacing:.015em;text-transform:none;color:#fff;margin:0 0 42px;background:none}
+.hero .platform-links{gap:56px;justify-content:center}
+.hero .platform-link{--icon-size:108px;min-width:120px;min-height:0;gap:20px}
+.hero .platform-art{display:grid;place-items:center;position:relative;width:var(--icon-size);height:var(--icon-size)}
+.hero .platform-art img{width:100%;height:100%;margin:0;object-fit:contain}
+.hero .platform-art img[src$="youtube-color.png"]{width:152%;height:152%;max-width:none;margin:0;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
+.hero .platform-link>span:last-child{font:400 13px/1.4 var(--body);color:#eee}
+.hero .platform-link::before{width:152px;height:152px;top:-22px;filter:blur(8px);opacity:.55}
+.hero .scroll-cue{position:absolute;bottom:0;margin:0;padding:0;min-height:44px;font-size:13px}
+.hero-grid:focus{outline:none}
+@media(max-width:600px){
+ .wordmark-motion{bottom:80px;right:50%;transform:translateX(50%)}
+ .hero .platform-label{font-size:15px;margin-bottom:32px}
+ .hero .platform-links{gap:20px}
+ .hero .platform-link{--icon-size:72px;min-width:76px;gap:15px}
+ .hero .platform-link>span:last-child{font-size:12px}
+ .hero .platform-link::before{width:106px;height:106px;top:-17px}
+}
+@media(max-height:500px){
+ .hero .hero-grid{padding-block:20px}
+ .hero .hero-copy{padding:36px 0 70px}
+ .hero .platform-label{margin-bottom:20px}
+ .hero .platform-link{--icon-size:56px;gap:10px}
+ .hero .platform-link::before{width:88px;height:88px;top:-16px}
+}
+@media(forced-colors:active){.has-wordmark-video{color:CanvasText}.kwe-wordmark-video,.wordmark-motion{display:none}}
+/* The title leaves upward while the services rise into the same central space. */
+.kwe-intro-pending .hero .platform-group{opacity:0;transform:translateY(32px)}
+.kwe-intro-pending .hero .scroll-cue{opacity:0;visibility:hidden;transform:translateY(8px)}
+.kwe-intro-exiting .wordmark-stage h1{animation:wordmark-lift 1100ms cubic-bezier(.4,0,.2,1) both}
+.kwe-intro-exiting .wordmark-stage::before{animation:wordmark-clear 950ms ease 120ms both}
+.kwe-intro-exiting .wordmark-motion{opacity:0;transition:opacity 200ms}
+.kwe-intro-exiting .hero .platform-group{animation:services-arrive 950ms cubic-bezier(.22,1,.36,1) 180ms both}
+.kwe-intro-exiting .hero .scroll-cue{animation:explore-arrive 350ms ease 850ms both}
+@keyframes wordmark-lift{from{transform:translateY(0) scale(1);opacity:1}to{transform:translateY(-24svh) scale(.88);opacity:0}}
+@keyframes wordmark-clear{to{opacity:0}}
+@keyframes services-arrive{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
+@keyframes explore-arrive{from{opacity:0;visibility:visible;transform:translateY(8px)}to{opacity:1;visibility:visible;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.wordmark-stage{display:none!important}.kwe-intro-pending .hero .platform-group,.kwe-intro-pending .hero .scroll-cue{opacity:1;transform:none;visibility:visible}}
