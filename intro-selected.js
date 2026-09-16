@@ -24,17 +24,23 @@
     const root = document.documentElement;
     const reduced = matchMedia('(prefers-reduced-motion: reduce)');
     const layer = document.createElement('div');
-    layer.className = 'kwe-aperture';
+    layer.className = 'kwe-aperture is-preparing';
     layer.setAttribute('aria-label', 'Saint Kwe opening animation');
-    layer.innerHTML = '<div class="kwe-aperture-curtain top"></div><div class="kwe-aperture-curtain bottom"></div><div class="kwe-aperture-film is-loading" aria-hidden="true"><video muted playsinline preload="metadata" poster="assets/concert-cultrd-125-full.jpg"><source src="assets/july20-intro.mp4" type="video/mp4"></video></div><div class="kwe-aperture-line" aria-hidden="true"></div><p class="kwe-aperture-title" aria-hidden="true"><span class="kwe-aperture-outline">SAINT KWE</span><span class="kwe-aperture-fill">SAINT KWE</span></p><p class="kwe-aperture-eyebrow" aria-hidden="true">MUSIC &nbsp;/&nbsp; VISUALS</p>';
+    layer.innerHTML = '<div class="kwe-aperture-curtain top"></div><div class="kwe-aperture-curtain bottom"></div><div class="kwe-aperture-film is-loading" aria-hidden="true"><video muted playsinline preload="metadata" poster="assets/concert-cultrd-125-full.jpg"><source src="assets/july20-intro.mp4?v=original-restored" type="video/mp4"></video></div><div class="kwe-aperture-line" aria-hidden="true"></div><p class="kwe-aperture-title" aria-hidden="true"><span class="kwe-aperture-outline">SAINT KWE</span><span class="kwe-aperture-fill">SAINT KWE</span></p><p class="kwe-aperture-eyebrow" aria-hidden="true">MUSIC &nbsp;/&nbsp; VISUALS</p>';
     document.body.append(layer);
     const inertTargets=[...document.body.children].filter(el=>el!==layer&&el.tagName!=='SCRIPT').map(el=>[el,el.inert]);
     inertTargets.forEach(([el])=>el.inert=true);
     const film = layer.querySelector('.kwe-aperture-film');
     const video = layer.querySelector('video');
-    video.addEventListener('playing',()=>{film.classList.add('has-frame');film.classList.remove('is-loading');});
-    video.addEventListener('waiting',()=>film.classList.add('is-loading'));
-    video.addEventListener('error',()=>{film.classList.remove('has-frame','is-loading');});
+    video.preload = 'auto';
+    video.muted = true;
+    video.defaultMuted = true;
+    const controls = document.createElement('div');
+    controls.className = 'kwe-aperture-controls';
+    controls.innerHTML = '<p role="status">Loading the opening…</p><button type="button" class="intro-retry" hidden>Play opening</button><button type="button" class="intro-skip">Skip opening</button>';
+    layer.append(controls);
+    const status = controls.querySelector('[role="status"]');
+    const retry = controls.querySelector('.intro-retry');
     const title = layer.querySelector('.kwe-aperture-title');
     const fill = layer.querySelector('.kwe-aperture-fill');
     const line = layer.querySelector('.kwe-aperture-line');
@@ -42,7 +48,7 @@
     const animations = [];
     let started = false;
     let done = false;
-    let finishTimer, handoffTimer;
+    let recoveryTimer, frameRequest, fontsReady = false, frameReady = false, buffering = true;
     const heading=document.querySelector('.wordmark-stage h1');
     const previousOverflow = root.style.overflow;
     root.style.overflow = 'hidden';
@@ -55,7 +61,8 @@
       if (done) return;
       done = true;
       activeFinish = null;
-      clearTimeout(finishTimer);clearTimeout(handoffTimer);
+      clearTimeout(recoveryTimer);
+      if(frameRequest != null) video.cancelVideoFrameCallback?.(frameRequest);
       root.classList.remove('aperture-handoff');
       window.removeEventListener('resize', resized);
       document.removeEventListener('visibilitychange', visibilityChanged);
@@ -74,26 +81,31 @@
     };
     const animate = (element, frames, duration, delay = 0, easing = 'cubic-bezier(.22,1,.36,1)') => {
       const animation=element.animate(frames, {duration, delay, easing, fill:'both'});
+      animation.finished.catch(() => {});
       animations.push(animation);return animation;
     };
+    // These clocks pause with the visual animations when playback buffers.
+    const afterPlayback = (duration, callback) => {
+      const clock = animate(layer, [{},{}], duration);
+      clock.finished.then(() => { if (!done) callback(); }).catch(() => {});
+    };
     const start = () => {
-      if (started || done) return;
+      if (started || done || !fontsReady || !frameReady || buffering || document.hidden) return;
       started = true;
       if (reduced.matches || !layer.animate) { finish(); return; }
       settle();
       if(heading){const headingStyle=getComputedStyle(heading);title.style.fontFamily=headingStyle.fontFamily;title.style.fontWeight=headingStyle.fontWeight;title.style.letterSpacing='-.045em';}
-      video.muted = true;
-      video.play().catch(() => film.classList.remove('is-loading')); // Poster carries the same composition if embedded autoplay is blocked.
-      finishTimer = setTimeout(finish, 6500);
+      layer.classList.remove('is-preparing');
+      controls.hidden = true;
       root.classList.add('aperture-handoff');
       animate(line, [{transform:'scaleX(0)'},{transform:'scaleX(1)',offset:.7},{transform:'scaleX(1)',opacity:0}], 850);
       animate(film, [{clipPath:'inset(49.85% 0)'},{clipPath:'inset(24% 0)'}], 1250, 250);
-      animate(title, [{opacity:0,transform:'scale(.92)'},{opacity:1,transform:'scale(1)'}], 1150, 300);
+      animate(title, [{opacity:1,transform:'scale(.92)'},{opacity:1,transform:'scale(1)'}], 1150, 300);
       // Extend the reveal above/below the tight line box so tall glyphs fill completely.
       animate(fill, [{clipPath:'inset(-.5em 100% -.5em -.12em)'},{clipPath:'inset(-.5em -.12em -.5em -.12em)'}], 1300, 650, 'cubic-bezier(.4,0,.6,1)');
       animate(eyebrow, [{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'translateY(0)'}], 650, 1250);
       // Carry the same title into the real homepage heading while the aperture opens.
-      handoffTimer=setTimeout(()=>{
+      afterPlayback(2400,()=>{
         if(done)return;
         try{
           const range=document.createRange();range.selectNodeContents(heading);
@@ -113,13 +125,56 @@
           const W=innerWidth,H=innerHeight,radius=Math.min(W,H)*.18;
           animate(film,[{clipPath:'inset(24% 0 round 0px)'},{clipPath:`inset(${H/2-radius}px ${W/2-radius}px round ${radius}px)`,offset:.62},{clipPath:'inset(50% 50% round 100px)'}],1800,0,'cubic-bezier(.55,0,.2,1)');
           animate(eyebrow,[{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(-18px)'}],450);
-          clearTimeout(finishTimer);finishTimer=setTimeout(finish,1860);
+          afterPlayback(1860,finish);
         }catch{finish();}
-      },2400);
+      });
     };
+    function recovery(message) {
+      if(done)return;
+      controls.hidden=false;
+      status.textContent=message;
+      retry.hidden=false;
+    }
+    function waiting() {
+      if(done)return;
+      buffering=true;frameReady=false;
+      film.classList.add('is-loading');
+      animations.forEach(animation=>{if(animation.playState==='running')animation.pause();});
+      clearTimeout(recoveryTimer);
+      recoveryTimer=setTimeout(()=>recovery('Still loading. You can retry or skip the opening.'),8000);
+    }
+    function decoded() {
+      frameRequest=null;
+      if(done || document.hidden || video.paused || video.readyState<2)return;
+      frameReady=true;buffering=false;
+      clearTimeout(recoveryTimer);
+      film.classList.add('has-frame');film.classList.remove('is-loading');
+      controls.hidden=true;
+      animations.forEach(animation=>{if(animation.playState==='paused')animation.play();});
+      start();
+    }
+    function playing() {
+      if(done)return;
+      if(frameRequest != null)video.cancelVideoFrameCallback?.(frameRequest);
+      if(video.requestVideoFrameCallback)frameRequest=video.requestVideoFrameCallback(decoded);
+      else decoded();
+    }
+    function play() {
+      if(done)return;
+      waiting();retry.hidden=true;status.textContent='Loading the opening…';
+      if(video.error)video.load();
+      video.play().catch(()=>{if(!done)recovery('Tap to play the opening.');});
+    }
+    video.addEventListener('playing',playing);
+    video.addEventListener('waiting',waiting);
+    video.addEventListener('error',()=>{waiting();recovery('The opening could not load. Try again or skip.');});
+    // Keep the reveal alive if a short clip reaches its end during loading.
+    video.loop=true;
+    retry.addEventListener('click',play);
+    controls.querySelector('.intro-skip').addEventListener('click',finish);
     // Mobile browser address bars change height without changing the layout width.
     function resized(){if(started && Math.abs(innerWidth-initialWidth)>2)finish();}
-    function visibilityChanged(){if(document.hidden)finish();}
+    function visibilityChanged(){if(document.hidden){waiting();video.pause();}else play();}
     function motionChanged(event) { if (event.matches) finish(); }
     activeFinish=finish;
     window.addEventListener('hashchange', finish);
@@ -130,7 +185,8 @@
     if(reduced.matches)finish();
     else {
       // Do not measure fallback-font geometry if the display face is still loading.
-      Promise.race([document.fonts.ready,new Promise(resolve=>setTimeout(resolve,1200))]).then(start);
+      Promise.race([document.fonts.ready,new Promise(resolve=>setTimeout(resolve,1200))]).then(()=>{fontsReady=true;start();});
+      play();
     }
   };
   const ready = () => {

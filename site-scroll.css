@@ -1,0 +1,12 @@
+/* Native momentum, with light checkpoints at the main sections.
+   Proximity allows free positioning within long sections; no input interception. */
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-snap-type: y proximity; }
+  main > section {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+  /* The opening controls their own scroll lock and handoff. */
+  html.kwe-intro-pending,
+  html.aperture-handoff { scroll-snap-type: none; }
+}
