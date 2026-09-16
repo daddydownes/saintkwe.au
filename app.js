@@ -2,7 +2,9 @@ if (!matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObse
  const observer = new IntersectionObserver(entries => entries.forEach(entry => {
   if (entry.isIntersecting) { entry.target.classList.add('reveal'); observer.unobserve(entry.target); }
  }), {threshold:.08});
- document.querySelectorAll('.section-top,.archive-heading,.platform-group').forEach(element => observer.observe(element));
+ document.querySelectorAll('.section-top,.archive-heading,.platform-group').forEach(element => {
+  if (!element.closest('#contact')) observer.observe(element);
+ });
 }
 (() => {
   const runway = document.querySelector('.video-scroll');

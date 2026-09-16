@@ -3,6 +3,8 @@
 #contact{padding-top:24px;padding-bottom:48px}
 #contact h2{margin-top:0;margin-bottom:48px}
 #contact .contact-bottom,#contact .platform-group{width:100%}
+#contact .platform-group{animation:none;opacity:1}
+#contact .platform-link::before{animation:none}
 .catalog-footer{display:flex;justify-content:center;padding:24px 5% 64px;text-align:center}
 .catalog-footer .catalog-cta{display:inline-flex;justify-content:center;align-items:center;min-height:64px;font:800 clamp(32px,7.2vw,112px)/1.08 var(--display);letter-spacing:-.025em;color:#ff3038;text-wrap:balance;text-shadow:0 0 18px #ff303833;transition:color .2s ease}
 .catalog-footer .catalog-cta:hover{color:#ff777d}

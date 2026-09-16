@@ -9,3 +9,5 @@ html.kwe-route-reveal::before,html.kwe-route-reveal::after{animation:kwe-route-o
 @keyframes kwe-route-close{from{transform:translateY(var(--offscreen))}to{transform:translateY(0)}}
 @keyframes kwe-route-open{from{transform:translateY(0)}to{transform:translateY(calc(var(--offscreen) * -1))}}
 @media(prefers-reduced-motion:reduce){html.kwe-route::before,html.kwe-route::after{display:none;animation:none}}
+/* Arrival shutters are decorative; a quick tap on a revealed link must work. */
+html.kwe-route:not(.kwe-route-cover)::before,html.kwe-route:not(.kwe-route-cover)::after{pointer-events:none}

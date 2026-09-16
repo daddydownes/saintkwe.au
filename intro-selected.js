@@ -37,10 +37,13 @@
     video.defaultMuted = true;
     const controls = document.createElement('div');
     controls.className = 'kwe-aperture-controls';
-    controls.innerHTML = '<p role="status">Loading the opening…</p><button type="button" class="intro-retry" hidden>Play opening</button><button type="button" class="intro-skip">Skip opening</button>';
+    controls.hidden = true;
+    controls.innerHTML = '<p role="status">Loading the opening…</p><button type="button" class="intro-retry" hidden>Play opening</button><button type="button" class="intro-skip" hidden>Skip opening</button>';
     layer.append(controls);
     const status = controls.querySelector('[role="status"]');
     const retry = controls.querySelector('.intro-retry');
+    const skip = controls.querySelector('.intro-skip');
+    skip.hidden = true;
     const title = layer.querySelector('.kwe-aperture-title');
     const fill = layer.querySelector('.kwe-aperture-fill');
     const line = layer.querySelector('.kwe-aperture-line');
@@ -48,7 +51,7 @@
     const animations = [];
     let started = false;
     let done = false;
-    let recoveryTimer, frameRequest, fontsReady = false, frameReady = false, buffering = true;
+    let recoveryTimer, skipTimer, frameRequest, fontsReady = false, frameReady = false, buffering = true;
     const heading=document.querySelector('.wordmark-stage h1');
     const previousOverflow = root.style.overflow;
     root.style.overflow = 'hidden';
@@ -62,6 +65,7 @@
       done = true;
       activeFinish = null;
       clearTimeout(recoveryTimer);
+      clearTimeout(skipTimer);
       if(frameRequest != null) video.cancelVideoFrameCallback?.(frameRequest);
       root.classList.remove('aperture-handoff');
       window.removeEventListener('resize', resized);
@@ -141,7 +145,7 @@
       film.classList.add('is-loading');
       animations.forEach(animation=>{if(animation.playState==='running')animation.pause();});
       clearTimeout(recoveryTimer);
-      recoveryTimer=setTimeout(()=>recovery('Still loading. You can retry or skip the opening.'),8000);
+      recoveryTimer=setTimeout(()=>recovery('Still loading. You can retry the opening.'),15000);
     }
     function decoded() {
       frameRequest=null;
@@ -167,11 +171,18 @@
     }
     video.addEventListener('playing',playing);
     video.addEventListener('waiting',waiting);
-    video.addEventListener('error',()=>{waiting();recovery('The opening could not load. Try again or skip.');});
+    video.addEventListener('error',()=>{waiting();recovery('The opening could not load. Try again.');});
     // Keep the reveal alive if a short clip reaches its end during loading.
     video.loop=true;
     retry.addEventListener('click',play);
-    controls.querySelector('.intro-skip').addEventListener('click',finish);
+    skip.addEventListener('click',finish);
+    // A normal connection sees only the outline and footage. Keep an escape
+    // available after 15 seconds, even if repeated media events reset recovery.
+    skipTimer=setTimeout(()=>{
+      if(done)return;
+      skip.hidden=false;
+      if(buffering || !started){controls.hidden=false;status.textContent='The opening is taking longer to load.';}
+    },15000);
     // Mobile browser address bars change height without changing the layout width.
     function resized(){if(started && Math.abs(innerWidth-initialWidth)>2)finish();}
     function visibilityChanged(){if(document.hidden){waiting();video.pause();}else play();}

@@ -18,7 +18,9 @@
  function navigate(href){
   const target=new URL(href,location.href);
   if(target.origin!==location.origin){location.assign(target.href);return;}
-  if(busy)return;
+  // An arrival reveal must not swallow a quick Exit/Enter click. Only ignore
+  // repeated clicks while an outgoing navigation is already scheduled.
+  if(busy){if(pendingHref)return;reset();}
   if(reduced.matches){location.assign(target.href);return;}
   busy=true;
   const direction=target.pathname.endsWith('/flight.html')?'enter':'exit';
