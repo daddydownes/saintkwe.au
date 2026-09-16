@@ -26,7 +26,7 @@
     const layer = document.createElement('div');
     layer.className = 'kwe-aperture';
     layer.setAttribute('aria-label', 'Saint Kwe opening animation');
-    layer.innerHTML = '<div class="kwe-aperture-curtain top"></div><div class="kwe-aperture-curtain bottom"></div><div class="kwe-aperture-film" aria-hidden="true"><video muted playsinline preload="metadata" poster="assets/concert-cultrd-125-full.jpg"><source src="assets/july20-intro.mp4" type="video/mp4"></video></div><div class="kwe-aperture-line" aria-hidden="true"></div><p class="kwe-aperture-title" aria-hidden="true"><span class="kwe-aperture-outline">SAINT KWE</span><span class="kwe-aperture-fill">SAINT KWE</span></p><p class="kwe-aperture-eyebrow" aria-hidden="true">MUSIC &nbsp;/&nbsp; VISUALS</p><button class="kwe-aperture-skip" type="button">SKIP INTRO ↗</button>';
+    layer.innerHTML = '<div class="kwe-aperture-curtain top"></div><div class="kwe-aperture-curtain bottom"></div><div class="kwe-aperture-film" aria-hidden="true"><video muted playsinline preload="metadata" poster="assets/concert-cultrd-125-full.jpg"><source src="assets/july20-intro.mp4" type="video/mp4"></video></div><div class="kwe-aperture-line" aria-hidden="true"></div><p class="kwe-aperture-title" aria-hidden="true"><span class="kwe-aperture-outline">SAINT KWE</span><span class="kwe-aperture-fill">SAINT KWE</span></p><p class="kwe-aperture-eyebrow" aria-hidden="true">MUSIC &nbsp;/&nbsp; VISUALS</p>';
     document.body.append(layer);
     const inertTargets=[...document.body.children].filter(el=>el!==layer&&el.tagName!=='SCRIPT').map(el=>[el,el.inert]);
     inertTargets.forEach(([el])=>el.inert=true);
@@ -66,7 +66,6 @@
       if (restoreFocus) document.querySelector('.flight-launch')?.focus({ preventScroll: true });
       window.removeEventListener('hashchange', finish);
       window.removeEventListener('pagehide', finish);
-      window.removeEventListener('keydown', keydown);
       reduced.removeEventListener?.('change', motionChanged);
 
     };
@@ -111,21 +110,17 @@
           const W=innerWidth,H=innerHeight,radius=Math.min(W,H)*.18;
           animate(film,[{clipPath:'inset(24% 0 round 0px)'},{clipPath:`inset(${H/2-radius}px ${W/2-radius}px round ${radius}px)`,offset:.62},{clipPath:'inset(50% 50% round 100px)'}],1800,0,'cubic-bezier(.55,0,.2,1)');
           animate(eyebrow,[{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(-18px)'}],450);
-          // Keep Skip visible and usable until the animation has actually finished.
           clearTimeout(finishTimer);finishTimer=setTimeout(finish,1860);
         }catch{finish();}
       },2400);
     };
-    function keydown(event) { if (event.key === 'Escape') finish(); }
     // Mobile browser address bars change height without changing the layout width.
     function resized(){if(started && Math.abs(innerWidth-initialWidth)>2)finish();}
     function visibilityChanged(){if(document.hidden)finish();}
     function motionChanged(event) { if (event.matches) finish(); }
     activeFinish=finish;
-    layer.querySelector('button').addEventListener('click', finish);
     window.addEventListener('hashchange', finish);
     window.addEventListener('pagehide', finish);
-    window.addEventListener('keydown', keydown);
     reduced.addEventListener?.('change', motionChanged);
     window.addEventListener('resize',resized);
     document.addEventListener('visibilitychange',visibilityChanged);

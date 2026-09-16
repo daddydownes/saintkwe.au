@@ -8,9 +8,6 @@
 .kwe-aperture-outline{color:transparent;-webkit-text-stroke:1.4px #ff3038}
 .kwe-aperture-fill{position:absolute;color:#ff3038;-webkit-text-stroke:0;clip-path:inset(-.5em 100% -.5em -.12em)}
 .kwe-aperture-eyebrow{position:absolute;left:0;right:0;top:calc(50% + min(12vw,180px));margin:0;text-align:center;font:500 10px/1.5 Inter,Arial,sans-serif;letter-spacing:.42em;color:#e9d4d5;opacity:0}
-.kwe-aperture-skip{position:absolute;right:max(22px,env(safe-area-inset-right));bottom:max(22px,env(safe-area-inset-bottom));min-height:44px;border:1px solid #ffffff35;border-radius:0;padding:0 16px;color:#ddd;background:#0005;font:500 10px/1 Inter,Arial,sans-serif;letter-spacing:.13em;cursor:pointer}
-.kwe-aperture-skip:hover{color:white;border-color:#ff3038}
-.kwe-aperture-skip:focus-visible{outline:2px solid #ff3038;outline-offset:4px}
 @media(max-width:600px){.kwe-aperture-title{font-size:20vw}.kwe-aperture-eyebrow{font-size:8px;letter-spacing:.32em;top:calc(50% + 17vw)}}
 @media(prefers-reduced-motion:reduce){.kwe-aperture{display:none}}
 
