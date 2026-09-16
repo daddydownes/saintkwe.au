@@ -39,3 +39,10 @@ body.previewing #inspect span{background:#000b;margin:4px;padding:8px 12px}
 
 /* Keep the experience focused on the clip and its title. */
 .route-status,.screen-top,.screen-bottom,.flight-panel:after{display:none!important}
+
+/* One sound control stays beside Exit without changing the video layout. */
+.experience-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.sound-toggle{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 14px;background:#171717;border-radius:3px;color:#fff;font-size:13px;white-space:nowrap}
+.sound-toggle[aria-pressed="true"]{color:#aaa}
+@media(max-width:600px){header{gap:8px}.experience-actions{gap:6px}.sound-toggle{font-size:10px;padding:0 10px}}
+@media(max-width:360px){.experience-actions{gap:4px}.sound-toggle,.experience-actions .exit{padding:0 8px}}

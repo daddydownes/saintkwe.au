@@ -3,35 +3,50 @@
  const $=id=>document.getElementById(id);
  const tracks=[['SUMMER AIN’T OVER','e_RMY3Msjro'],['WHO DEM BOYS','b9i6DAuP5qw'],['BABY BOY FREESTYLE','jFzVBUUswUA'],['BOBBY & WHITNEY','1eg_lb5T8kY'],['SPECIAL','hesCXfu5R5Y']];
  const query=matchMedia('(prefers-reduced-motion: reduce)');
- let reduced=query.matches,index=0,active=0,running=false,paused=false,inspecting=false,muted=false,transition=0,last=0,playing=false;
+ let reduced=query.matches,index=0,running=false,paused=false,inspecting=false,muted=false,transition=0,last=0,playing=false;
+ let needsGesture=false,mediaFailed=false,playRequest=0;
  const screen=$('screen'),videos=[document.createElement('video'),document.createElement('video')];
  const wrapper=$('player-wrap');wrapper.replaceChildren(...videos);wrapper.hidden=false;
  const camera=document.createElement('div');camera.className='flight-camera';wrapper.replaceChildren(camera);
  const panels=tracks.map(([name,id],i)=>{const panel=document.createElement('a');panel.className='flight-panel';panel.href='https://www.youtube.com/watch?v='+id;panel.target='_blank';panel.rel='noopener';panel.setAttribute('aria-label','Watch '+name+' on YouTube');panel.title='Watch full video on YouTube';panel.tabIndex=i===0?0:-1;panel.addEventListener('click',()=>pause(true));panel.style.transform=`translate3d(${i%2?260:-260}px,${i%3===1?65:0}px,${-i*2400}px)`;const poster=document.createElement('img');poster.src=id==='hesCXfu5R5Y'?'assets/special-court-cover.png':`assets/${id}-hd.jpg`;poster.alt='';panel.append(poster);camera.append(panel);return panel;});
  videos.forEach(v=>{v.preload='auto';v.playsInline=true;v.setAttribute('playsinline','');v.volume=.65;v.hidden=true;
-  v.addEventListener('playing',()=>{if(v!==current())return;playing=true;screen.classList.remove('loading');$('enable-audio').hidden=true;$('media-status').textContent='Playing automatically · next song follows';});
-  v.addEventListener('waiting',()=>{if(v!==current())return;playing=false;screen.classList.add('loading');$('media-status').textContent='Loading the preview…';});
+  v.addEventListener('playing',()=>{if(v!==current()||!running||paused)return;playing=true;needsGesture=false;mediaFailed=false;screen.classList.remove('loading');updateSound();$('media-status').textContent=muted?'Playing muted · next song follows':'Playing automatically · next song follows';});
+  v.addEventListener('waiting',()=>{if(v!==current()||!running||paused)return;playing=false;screen.classList.add('loading');$('media-status').textContent='Loading the preview…';});
   v.addEventListener('pause',()=>{if(v===current())playing=false;});
   v.addEventListener('timeupdate',()=>{if(v===current()&&running&&!paused&&!inspecting&&v.currentTime>=8)next();});
   v.addEventListener('ended',()=>{if(v!==current())return;if(inspecting){v.currentTime=0;play();}else next();});
-  v.addEventListener('error',()=>{if(v!==current())return;playing=false;screen.classList.remove('loading');$('media-status').textContent='Preview unavailable. Retry below or tap the video to watch on YouTube.';$('enable-audio').hidden=false;$('enable-audio').textContent='Retry preview';});
+  v.addEventListener('error',()=>{if(v!==current()||!running)return;showMediaError();});
  });
- function current(){return videos[active];}
+ // Keep the audible element across tracks: some browsers grant playback per element.
+ // The second element only preloads the next original HD clip; it never plays.
+ function current(){return videos[0];}
+ function updateSound(){
+  const label=mediaFailed?'Retry':needsGesture?(muted?'Play':'Play sound'):muted?'Unmute':'Mute';
+  $('sound').textContent=label;$('sound').setAttribute('aria-label',label);
+  $('sound').setAttribute('aria-pressed',String(muted));
+ }
+ function showMediaError(){playing=false;mediaFailed=true;needsGesture=false;screen.classList.remove('loading');updateSound();$('media-status').textContent='Preview unavailable. Tap Retry above or tap the video to watch on YouTube.';}
  function prepare(v,i){if(i>=tracks.length)return;const src=`assets/previews/${tracks[i][1]}-hq.mp4`;if(v.dataset.source!==src){v.dataset.source=src;v.src=src;v.load();}}
- async function play(){const v=current();v.muted=muted;try{await v.play();}catch(e){if(v!==current()||!running||paused||e.name==='AbortError')return;playing=false;screen.classList.remove('loading');$('enable-audio').hidden=false;$('enable-audio').textContent='Play with sound';$('media-status').textContent='Tap once to start the music. Then the journey plays automatically.';}}
- function choose(i){videos.forEach(v=>{v.pause();v.hidden=true;});index=i;active=i%2;playing=false;transition=0;paused=false;inspecting=false;document.body.classList.remove('inspecting');document.body.classList.add('previewing');screen.classList.add('loading');
-  panels.forEach((panel,n)=>panel.tabIndex=n===i?0:-1);const [name,id]=tracks[i];prepare(current(),i);panels[i].append(current());current().currentTime=0;current().hidden=false;prepare(videos[1-active],i+1);if(panels[i+1])panels[i+1].append(videos[1-active]);
+ async function play(){const v=current(),request=++playRequest;v.muted=muted;try{await v.play();}catch(e){if(request!==playRequest||!running||paused||e.name==='AbortError')return;if(e.name!=='NotAllowedError'){showMediaError();return;}playing=false;needsGesture=true;mediaFailed=false;screen.classList.remove('loading');updateSound();$('media-status').textContent=muted?'Tap Play above to continue muted.':'Tap Play sound above to start the music.';}}
+ function choose(i){++playRequest;videos.forEach(v=>{v.pause();v.hidden=true;});index=i;playing=false;needsGesture=false;mediaFailed=false;transition=0;paused=false;inspecting=false;document.body.classList.remove('inspecting');document.body.classList.add('previewing');screen.classList.add('loading');
+  panels.forEach((panel,n)=>panel.tabIndex=n===i?0:-1);const [name,id]=tracks[i];prepare(current(),i);panels[i].append(current());current().currentTime=0;current().hidden=false;prepare(videos[1],i+1);if(panels[i+1])panels[i+1].append(videos[1]);
   $('poster').src=id==='hesCXfu5R5Y'?'assets/special-court-cover.png':`assets/${id}-hd.jpg`;$('poster').alt=`${name} video artwork`;
   $('track-title').textContent=name;$('screen-name').textContent=name;$('chapter').textContent='';$('counter').textContent=`${String(i+1).padStart(2,'0')} / ${tracks.length}`;$('transmission').textContent=String(i+1).padStart(2,'0');$('watch').href=`https://www.youtube.com/watch?v=${id}`;
-  $('phase').textContent='IN FLIGHT';$('media-status').textContent='Loading the preview…';$('pause').textContent='Pause flight';$('pause').setAttribute('aria-pressed','false');$('enable-audio').hidden=true;play();
+  $('phase').textContent='IN FLIGHT';$('media-status').textContent='Loading the preview…';$('pause').textContent='Pause flight';$('pause').setAttribute('aria-pressed','false');updateSound();play();
  }
- function launch(){running=true;$('journey').hidden=false;$('arrival').hidden=true;choose(0);}
- function finish(){running=false;videos.forEach(v=>v.pause());$('journey').hidden=true;$('arrival').hidden=false;$('replay').focus({preventScroll:true});}
+ function launch(){running=true;$('sound').hidden=false;$('journey').hidden=false;$('arrival').hidden=true;choose(0);}
+ function finish(){running=false;++playRequest;videos.forEach(v=>v.pause());$('sound').hidden=true;$('journey').hidden=true;$('arrival').hidden=false;$('replay').focus({preventScroll:true});}
  function next(){if(index+1===tracks.length)finish();else choose(index+1);}
  function pause(value){paused=value;$('pause').textContent=value?'Resume flight':'Pause flight';$('pause').setAttribute('aria-pressed',String(value));$('phase').textContent=value?'FLIGHT PAUSED':'IN FLIGHT';$('media-status').textContent=value?'Music and flight paused.':'Playing automatically · next song follows';if(value)current().pause();else{inspecting=false;document.body.classList.remove('inspecting');play();}}
  $('pause').addEventListener('click',()=>pause(inspecting?false:!paused));$('next').addEventListener('click',next);$('replay').addEventListener('click',launch);
- $('sound').addEventListener('click',()=>{muted=!muted;videos.forEach(v=>v.muted=muted);$('sound').textContent=muted?'Sound on':'Mute';$('sound').setAttribute('aria-pressed',String(muted));if(!paused)play();});
- $('enable-audio').addEventListener('click',()=>{muted=false;paused=false;if(current().error)current().load();$('sound').textContent='Mute';$('sound').setAttribute('aria-pressed','false');play();});
+ $('sound').addEventListener('click',()=>{
+  if(needsGesture||mediaFailed){paused=false;needsGesture=false;mediaFailed=false;if(current().error)current().load();}
+  else muted=!muted;
+  current().muted=muted;updateSound();
+  if(playing&&!paused)$('media-status').textContent=muted?'Playing muted · next song follows':'Playing automatically · next song follows';
+  // Call play directly within the tap, before any asynchronous work.
+  if(!paused)play();
+ });
  $('inspect').addEventListener('click',()=>{inspecting=true;document.body.classList.add('inspecting');$('pause').textContent='Continue flight';$('media-status').textContent='Stay with this clip · Continue flight when ready';});
  $('watch').addEventListener('click',()=>pause(true));
  function motion(){ $('motion').textContent=reduced?'Motion off':'Reduce motion';$('motion').setAttribute('aria-pressed',String(reduced));}
