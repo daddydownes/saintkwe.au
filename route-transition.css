@@ -1,0 +1,11 @@
+/* Selected demo 01: opposing red shutters, reversed on exit. */
+html.kwe-route::before,html.kwe-route::after{content:'';position:fixed;top:0;width:calc(50% + 1px);height:100%;z-index:2147483646;background:#e12830;pointer-events:auto;will-change:transform;--offscreen:-101%;transform:translateY(0)}
+html.kwe-route::before{left:0;box-shadow:inset -1px 0 rgba(30,0,0,.28)}
+html.kwe-route::after{right:0;--offscreen:101%}
+html.kwe-route[data-kwe-direction='exit']::before{--offscreen:101%}
+html.kwe-route[data-kwe-direction='exit']::after{--offscreen:-101%}
+html.kwe-route-cover::before,html.kwe-route-cover::after{animation:kwe-route-close 620ms cubic-bezier(.76,0,.24,1) both}
+html.kwe-route-reveal::before,html.kwe-route-reveal::after{animation:kwe-route-open 640ms cubic-bezier(.76,0,.24,1) both}
+@keyframes kwe-route-close{from{transform:translateY(var(--offscreen))}to{transform:translateY(0)}}
+@keyframes kwe-route-open{from{transform:translateY(0)}to{transform:translateY(calc(var(--offscreen) * -1))}}
+@media(prefers-reduced-motion:reduce){html.kwe-route::before,html.kwe-route::after{display:none;animation:none}}

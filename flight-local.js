@@ -52,7 +52,7 @@
  function motion(){ $('motion').textContent=reduced?'Motion off':'Reduce motion';$('motion').setAttribute('aria-pressed',String(reduced));}
  $('motion').addEventListener('click',()=>{reduced=!reduced;motion();});query.addEventListener('change',e=>{reduced=e.matches;motion();});motion();
  let resumeAfterVisibility=false;
- document.addEventListener('visibilitychange',()=>{if(!running)return;if(document.hidden){resumeAfterVisibility=!paused;if(resumeAfterVisibility)pause(true);}else if(resumeAfterVisibility){resumeAfterVisibility=false;pause(false);}});window.addEventListener('pagehide',()=>videos.forEach(v=>v.pause()));document.addEventListener('keydown',e=>{if(e.key==='Escape'){videos.forEach(v=>v.pause());location.href='index.html#listen';}});
+ document.addEventListener('visibilitychange',()=>{if(!running)return;if(document.hidden){resumeAfterVisibility=!paused;if(resumeAfterVisibility)pause(true);}else if(resumeAfterVisibility){resumeAfterVisibility=false;pause(false);}});window.addEventListener('pagehide',()=>videos.forEach(v=>v.pause()));document.addEventListener('keydown',e=>{if(e.key==='Escape'){videos.forEach(v=>v.pause());if(window.KweTransitions)window.KweTransitions.navigate('index.html#listen');else location.href='index.html#listen';}});
  // The decorative canvas is permanently hidden; only animate the visible camera.
  screen.style.transform='none';screen.style.opacity='1';
  const progress=$('progress');
