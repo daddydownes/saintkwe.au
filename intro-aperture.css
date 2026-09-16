@@ -13,3 +13,11 @@
 
 .kwe-aperture-curtain{position:absolute;left:0;right:0;height:50.1%;background:#050505;will-change:transform}.kwe-aperture-curtain.top{top:0}.kwe-aperture-curtain.bottom{bottom:0}
 html.aperture-handoff .wordmark-stage h1{visibility:hidden}
+
+/* Poster remains behind the film if playback is slow or unavailable. */
+.kwe-aperture-film{background:#100709 url('assets/concert-cultrd-125-full.jpg') center/cover no-repeat}
+.kwe-aperture-film video{opacity:0}
+.kwe-aperture-film.has-frame video{opacity:1}
+.kwe-aperture-film.is-loading{animation:kwe-intro-buffer 2.2s ease-in-out infinite}
+@keyframes kwe-intro-buffer{0%,100%{filter:blur(0)}50%{filter:blur(4px)}}
+@media(prefers-reduced-motion:reduce){.kwe-aperture-film.is-loading{animation:none}}

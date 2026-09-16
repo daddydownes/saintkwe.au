@@ -26,12 +26,15 @@
     const layer = document.createElement('div');
     layer.className = 'kwe-aperture';
     layer.setAttribute('aria-label', 'Saint Kwe opening animation');
-    layer.innerHTML = '<div class="kwe-aperture-curtain top"></div><div class="kwe-aperture-curtain bottom"></div><div class="kwe-aperture-film" aria-hidden="true"><video muted playsinline preload="metadata" poster="assets/concert-cultrd-125-full.jpg"><source src="assets/july20-intro.mp4" type="video/mp4"></video></div><div class="kwe-aperture-line" aria-hidden="true"></div><p class="kwe-aperture-title" aria-hidden="true"><span class="kwe-aperture-outline">SAINT KWE</span><span class="kwe-aperture-fill">SAINT KWE</span></p><p class="kwe-aperture-eyebrow" aria-hidden="true">MUSIC &nbsp;/&nbsp; VISUALS</p>';
+    layer.innerHTML = '<div class="kwe-aperture-curtain top"></div><div class="kwe-aperture-curtain bottom"></div><div class="kwe-aperture-film is-loading" aria-hidden="true"><video muted playsinline preload="metadata" poster="assets/concert-cultrd-125-full.jpg"><source src="assets/july20-intro.mp4" type="video/mp4"></video></div><div class="kwe-aperture-line" aria-hidden="true"></div><p class="kwe-aperture-title" aria-hidden="true"><span class="kwe-aperture-outline">SAINT KWE</span><span class="kwe-aperture-fill">SAINT KWE</span></p><p class="kwe-aperture-eyebrow" aria-hidden="true">MUSIC &nbsp;/&nbsp; VISUALS</p>';
     document.body.append(layer);
     const inertTargets=[...document.body.children].filter(el=>el!==layer&&el.tagName!=='SCRIPT').map(el=>[el,el.inert]);
     inertTargets.forEach(([el])=>el.inert=true);
     const film = layer.querySelector('.kwe-aperture-film');
     const video = layer.querySelector('video');
+    video.addEventListener('playing',()=>{film.classList.add('has-frame');film.classList.remove('is-loading');});
+    video.addEventListener('waiting',()=>film.classList.add('is-loading'));
+    video.addEventListener('error',()=>{film.classList.remove('has-frame','is-loading');});
     const title = layer.querySelector('.kwe-aperture-title');
     const fill = layer.querySelector('.kwe-aperture-fill');
     const line = layer.querySelector('.kwe-aperture-line');
@@ -80,7 +83,7 @@
       settle();
       if(heading){const headingStyle=getComputedStyle(heading);title.style.fontFamily=headingStyle.fontFamily;title.style.fontWeight=headingStyle.fontWeight;title.style.letterSpacing='-.045em';}
       video.muted = true;
-      video.play().catch(() => {}); // Poster carries the same composition if embedded autoplay is blocked.
+      video.play().catch(() => film.classList.remove('is-loading')); // Poster carries the same composition if embedded autoplay is blocked.
       finishTimer = setTimeout(finish, 6500);
       root.classList.add('aperture-handoff');
       animate(line, [{transform:'scaleX(0)'},{transform:'scaleX(1)',offset:.7},{transform:'scaleX(1)',opacity:0}], 850);

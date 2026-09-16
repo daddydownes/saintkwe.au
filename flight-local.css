@@ -46,3 +46,13 @@ body.previewing #inspect span{background:#000b;margin:4px;padding:8px 12px}
 .sound-toggle[aria-pressed="true"]{color:#aaa}
 @media(max-width:600px){header{gap:8px}.experience-actions{gap:6px}.sound-toggle{font-size:10px;padding:0 10px}}
 @media(max-width:360px){.experience-actions{gap:4px}.sound-toggle,.experience-actions .exit{padding:0 8px}}
+
+/* Keep original HD artwork visible until a decoded video frame is playing. */
+.flight-panel{overflow:hidden}
+.flight-panel video{opacity:0}
+.flight-panel.has-frame video{opacity:1}
+.flight-panel.is-loading img,.flight-panel.is-loading.has-frame video{animation:kwe-buffer-breathe 2.2s ease-in-out infinite}
+.flight-panel.is-loading::before{content:'LOADING';position:absolute;z-index:3;left:50%;top:50%;transform:translate(-50%,-50%);padding:10px 16px;background:#0008;color:#fff;font:500 10px/1.4 Inter,Arial,sans-serif;letter-spacing:.2em;pointer-events:none}
+.screen.loading .screen-media:after{display:none}
+@keyframes kwe-buffer-breathe{0%,100%{filter:blur(0)}50%{filter:blur(5px)}}
+@media(prefers-reduced-motion:reduce){.flight-panel.is-loading img,.flight-panel.is-loading.has-frame video{animation:none}}
