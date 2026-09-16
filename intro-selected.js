@@ -10,11 +10,17 @@
   document.addEventListener('DOMContentLoaded',()=>window.scrollTo({top:0,left:0,behavior:'instant'}),{once:true});
  }
  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
- const eligible=!reduced.matches&&!location.hash&&(reloading||scrollY<2)&&!document.hidden;
+ const eligible=!reduced.matches&&!location.hash;
  if(!eligible){root.classList.add('mock-settled');return;}
  root.classList.add('kwe-intro-pending');
 
+  let activeFinish;
   const boot = () => {
+    if (document.hidden) return;
+    activeFinish?.();
+    history.scrollRestoration='manual';
+    window.scrollTo({top:0,left:0,behavior:'instant'});
+    const initialWidth=innerWidth;
     const root = document.documentElement;
     const reduced = matchMedia('(prefers-reduced-motion: reduce)');
     const layer = document.createElement('div');
@@ -45,6 +51,7 @@
     const finish = () => {
       if (done) return;
       done = true;
+      activeFinish = null;
       clearTimeout(finishTimer);clearTimeout(handoffTimer);
       root.classList.remove('aperture-handoff');
       window.removeEventListener('resize', resized);
@@ -110,9 +117,11 @@
       },2400);
     };
     function keydown(event) { if (event.key === 'Escape') finish(); }
-    function resized(){if(started)finish();}
+    // Mobile browser address bars change height without changing the layout width.
+    function resized(){if(started && Math.abs(innerWidth-initialWidth)>2)finish();}
     function visibilityChanged(){if(document.hidden)finish();}
     function motionChanged(event) { if (event.matches) finish(); }
+    activeFinish=finish;
     layer.querySelector('button').addEventListener('click', finish);
     window.addEventListener('hashchange', finish);
     window.addEventListener('pagehide', finish);
@@ -126,6 +135,20 @@
       Promise.race([document.fonts.ready,new Promise(resolve=>setTimeout(resolve,1200))]).then(start);
     }
   };
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, {once:true});
-  else boot();
+  const ready = () => {
+    if (document.hidden) {
+      const shown = () => {
+        if (document.hidden) return;
+        document.removeEventListener('visibilitychange', shown);
+        boot();
+      };
+      document.addEventListener('visibilitychange', shown);
+    } else boot();
+  };
+  // Back/forward caches restore the old document without re-running scripts.
+  window.addEventListener('pageshow', event => {
+    if (event.persisted && !location.hash && !reduced.matches) ready();
+  });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready, {once:true});
+  else ready();
 })();
