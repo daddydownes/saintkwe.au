@@ -4,7 +4,7 @@
  const tracks=[['SUMMER AIN’T OVER','e_RMY3Msjro'],['WHO DEM BOYS','b9i6DAuP5qw'],['BABY BOY FREESTYLE','jFzVBUUswUA'],['BOBBY & WHITNEY','1eg_lb5T8kY'],['SPECIAL','hesCXfu5R5Y']];
  const query=matchMedia('(prefers-reduced-motion: reduce)');
  let reduced=query.matches,index=0,active=0,running=false,paused=false,inspecting=false,muted=false,transition=0,last=0,playing=false;
- const screen=$('screen'),memories=[...document.querySelectorAll('.memory')],videos=[document.createElement('video'),document.createElement('video')];
+ const screen=$('screen'),videos=[document.createElement('video'),document.createElement('video')];
  const wrapper=$('player-wrap');wrapper.replaceChildren(...videos);wrapper.hidden=false;
  const camera=document.createElement('div');camera.className='flight-camera';wrapper.replaceChildren(camera);
  const panels=tracks.map(([name,id],i)=>{const panel=document.createElement('a');panel.className='flight-panel';panel.href='https://www.youtube.com/watch?v='+id;panel.target='_blank';panel.rel='noopener';panel.setAttribute('aria-label','Watch '+name+' on YouTube');panel.title='Watch full video on YouTube';panel.tabIndex=i===0?0:-1;panel.addEventListener('click',()=>pause(true));panel.style.transform=`translate3d(${i%2?260:-260}px,${i%3===1?65:0}px,${-i*2400}px)`;const poster=document.createElement('img');poster.src=id==='hesCXfu5R5Y'?'assets/special-court-cover.png':`assets/${id}-hd.jpg`;poster.alt='';panel.append(poster);camera.append(panel);return panel;});
@@ -38,16 +38,17 @@
  $('motion').addEventListener('click',()=>{reduced=!reduced;motion();});query.addEventListener('change',e=>{reduced=e.matches;motion();});motion();
  let resumeAfterVisibility=false;
  document.addEventListener('visibilitychange',()=>{if(!running)return;if(document.hidden){resumeAfterVisibility=!paused;if(resumeAfterVisibility)pause(true);}else if(resumeAfterVisibility){resumeAfterVisibility=false;pause(false);}});window.addEventListener('pagehide',()=>videos.forEach(v=>v.pause()));document.addEventListener('keydown',e=>{if(e.key==='Escape'){videos.forEach(v=>v.pause());location.href='index.html#listen';}});
- const canvas=$('space'),ctx=canvas.getContext('2d');let w,h;const stars=Array.from({length:70},()=>({x:Math.random()*2-1,y:Math.random()*2-1,z:Math.random()*2+.1}));
- function size(){w=innerWidth;h=innerHeight;const ratio=Math.min(devicePixelRatio||1,2);canvas.width=w*ratio;canvas.height=h*ratio;ctx.setTransform(ratio,0,0,ratio,0,0);}size();addEventListener('resize',size);
- function frame(now){const dt=Math.min((now-last)/1000,.05)||0;last=now;ctx.clearRect(0,0,w,h);
+ // The decorative canvas is permanently hidden; only animate the visible camera.
+ screen.style.transform='none';screen.style.opacity='1';
+ const progress=$('progress');
+ function frame(now){const dt=Math.min((now-last)/1000,.05)||0;last=now;
   if(running){const v=current(),t=v.currentTime,d=Math.min(Number.isFinite(v.duration)?v.duration:8,8);if(playing&&!paused)transition+=dt;
    const enter=Math.min(1,transition/1.6),leave=inspecting||index===tracks.length-1?0:Math.max(0,(t-(d-3.2))/3.2),ease=leave*leave*(3-2*leave),nextIndex=Math.min(index+1,tracks.length-1);
    // Bend beyond the screen edge before crossing its depth, then settle at the next screen.
    const arc=Math.pow(Math.sin(Math.PI*ease),2),clearance=screen.clientWidth*1.15+520,side=index%2?1:-1;
    const x=(index%2?260:-260)*(1-ease)+(nextIndex%2?260:-260)*ease+side*arc*clearance,y=(index%3===1?65:0)*(1-ease)+(nextIndex%3===1?65:0)*ease-arc*screen.clientHeight*.15,z=(index+ease)*2400-(index===0?1100*Math.pow(1-enter,3):0);
    camera.style.transform=reduced?`translate3d(${-(index%2?260:-260)}px,${-(index%3===1?65:0)}px,${index*2400}px)`:`translate3d(${-x}px,${-y}px,${z}px)`;
-   screen.style.transform='none';screen.style.opacity='1';$('progress').style.width=`${(index+Math.min(1,t/d))/tracks.length*100}%`;
+   progress.style.width=`${(index+Math.min(1,t/d))/tracks.length*100}%`;
   }requestAnimationFrame(frame);
  }requestAnimationFrame(frame);launch();
 })();
