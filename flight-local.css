@@ -1,4 +1,5 @@
 /* Reserve distinct video, caption and control areas at every viewport height. */
+.no-script{position:fixed;inset:90px 0 0;padding:24px 10%;margin:0;overflow:auto}
 #journey{display:flex;flex-direction:column;padding:110px 5% 30px;gap:12px;height:100svh;overflow:hidden}
 .screen{position:relative;top:auto;left:auto;flex:1;min-height:100px;width:100%;max-width:1100px;align-self:center;display:flex;flex-direction:column;transform:none;background:transparent;box-shadow:none}
 .screen-media{flex:1;min-height:0;aspect-ratio:auto;overflow:hidden;background:#000}
@@ -6,6 +7,9 @@
 #player-wrap{background:transparent}
 #player-wrap{perspective:750px;perspective-origin:50% 50%;overflow:hidden}
 .flight-camera{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform}
+.flat-flight .flight-camera{transform:none!important}
+.flat-flight .flight-panel{transform:none!important;visibility:hidden}
+.flat-flight .flight-panel[tabindex="0"]{visibility:visible}
 .flight-panel{position:absolute;inset:0;backface-visibility:hidden;background:#000}
 .flight-panel img,#player-wrap video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
 #poster{visibility:hidden}

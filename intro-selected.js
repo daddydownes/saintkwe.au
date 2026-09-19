@@ -12,6 +12,7 @@
  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
  const eligible=!reduced.matches&&!location.hash;
  if(!eligible){root.classList.add('mock-settled');return;}
+ root.classList.remove('mock-settled');
  root.classList.add('kwe-intro-pending');
 
   let activeFinish;
@@ -26,12 +27,15 @@
     const layer = document.createElement('div');
     layer.className = 'kwe-aperture is-preparing';
     layer.setAttribute('aria-label', 'Saint Kwe opening animation');
-    layer.innerHTML = '<div class="kwe-aperture-curtain top"></div><div class="kwe-aperture-curtain bottom"></div><div class="kwe-aperture-film is-loading" aria-hidden="true"><video muted playsinline preload="metadata" poster="assets/concert-cultrd-125-full.jpg"><source src="assets/july20-intro.mp4?v=original-restored" type="video/mp4"></video></div><div class="kwe-aperture-line" aria-hidden="true"></div><p class="kwe-aperture-title" aria-hidden="true"><span class="kwe-aperture-outline">SAINT KWE</span><span class="kwe-aperture-fill">SAINT KWE</span></p><p class="kwe-aperture-eyebrow" aria-hidden="true">MUSIC &nbsp;/&nbsp; VISUALS</p>';
+    layer.innerHTML = '<div class="kwe-aperture-curtain top"></div><div class="kwe-aperture-curtain bottom"></div><div class="kwe-aperture-film is-loading" aria-hidden="true"><video muted playsinline preload="metadata" poster="assets/concert-cultrd-125-full.jpg"><source data-src="assets/july20-intro.mp4?v=original-restored" type="video/mp4"></video></div><div class="kwe-aperture-line" aria-hidden="true"></div><p class="kwe-aperture-title" aria-hidden="true"><span class="kwe-aperture-outline">SAINT KWE</span><span class="kwe-aperture-fill">SAINT KWE</span></p><p class="kwe-aperture-eyebrow" aria-hidden="true">MUSIC &nbsp;/&nbsp; VISUALS</p>';
     document.body.append(layer);
     const inertTargets=[...document.body.children].filter(el=>el!==layer&&el.tagName!=='SCRIPT').map(el=>[el,el.inert]);
     inertTargets.forEach(([el])=>el.inert=true);
     const film = layer.querySelector('.kwe-aperture-film');
     const video = layer.querySelector('video');
+    const clipUrl = video.querySelector('source').dataset.src;
+    // Fetch the whole file ourselves: preload/canplaythrough are only hints.
+    video.querySelector('source').remove();
     video.preload = 'auto';
     video.muted = true;
     video.defaultMuted = true;
@@ -51,6 +55,9 @@
     const animations = [];
     let started = false;
     let done = false;
+    let downloadController = new AbortController();
+    let clipObjectUrl, pendingPlay, playAttempt = 0;
+    const fontReady = Promise.race([document.fonts.ready,new Promise(resolve=>setTimeout(resolve,1200))]);
     let recoveryTimer, skipTimer, frameRequest, fontsReady = false, frameReady = false, buffering = true;
     const heading=document.querySelector('.wordmark-stage h1');
     const previousOverflow = root.style.overflow;
@@ -72,6 +79,10 @@
       document.removeEventListener('visibilitychange', visibilityChanged);
       animations.forEach(animation => animation.cancel());
       video.pause();
+      downloadController.abort();
+      video.removeAttribute('src');
+      video.load();
+      if (clipObjectUrl) URL.revokeObjectURL(clipObjectUrl);
       settle();
       root.style.overflow = previousOverflow;
       const restoreFocus = layer.contains(document.activeElement);
@@ -138,6 +149,7 @@
       controls.hidden=false;
       status.textContent=message;
       retry.hidden=false;
+      skip.hidden=false;
     }
     function waiting() {
       if(done)return;
@@ -163,18 +175,41 @@
       if(video.requestVideoFrameCallback)frameRequest=video.requestVideoFrameCallback(decoded);
       else decoded();
     }
-    function play() {
-      if(done)return;
+    function play(restart = false) {
+      if(done || document.hidden || (pendingPlay && !restart))return;
+      const attempt=++playAttempt;
+      if(restart){downloadController.abort();downloadController=new AbortController();}
       waiting();retry.hidden=true;status.textContent='Loading the opening…';
-      if(video.error)video.load();
-      video.play().catch(()=>{if(!done)recovery('Tap to play the opening.');});
+      controls.hidden=true;
+      pendingPlay=(async()=>{
+        if(!clipObjectUrl){
+          try {
+            const response=await fetch(clipUrl,{signal:downloadController.signal});
+            if(!response.ok)throw new Error(`Opening download failed: ${response.status}`);
+            const clip=await response.blob();
+            if(done || attempt!==playAttempt)return;
+            clipObjectUrl=URL.createObjectURL(clip);
+            video.src=clipObjectUrl;
+          } catch {
+            if(!done && attempt===playAttempt){clearTimeout(recoveryTimer);recovery('The opening could not load. Try again.');}
+            return;
+          }
+        }
+        await fontReady;
+        fontsReady=true;
+        if(done || document.hidden || attempt!==playAttempt)return;
+        if(video.error)video.load();
+        if(!started)video.currentTime=0;
+        try { await video.play(); }
+        catch { if(!done && attempt===playAttempt)recovery('Tap to play the opening.'); }
+      })().finally(()=>{if(attempt===playAttempt)pendingPlay=null;});
     }
     video.addEventListener('playing',playing);
     video.addEventListener('waiting',waiting);
     video.addEventListener('error',()=>{waiting();recovery('The opening could not load. Try again.');});
     // Keep the reveal alive if a short clip reaches its end during loading.
     video.loop=true;
-    retry.addEventListener('click',play);
+    retry.addEventListener('click',()=>play(true));
     skip.addEventListener('click',finish);
     // A normal connection sees only the outline and footage. Keep an escape
     // available after 15 seconds, even if repeated media events reset recovery.
@@ -196,7 +231,6 @@
     if(reduced.matches)finish();
     else {
       // Do not measure fallback-font geometry if the display face is still loading.
-      Promise.race([document.fonts.ready,new Promise(resolve=>setTimeout(resolve,1200))]).then(()=>{fontsReady=true;start();});
       play();
     }
   };

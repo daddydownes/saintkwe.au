@@ -4,7 +4,7 @@
  const tracks=[['SUMMER AIN’T OVER','e_RMY3Msjro'],['WHO DEM BOYS','b9i6DAuP5qw'],['BABY BOY FREESTYLE','jFzVBUUswUA'],['BOBBY & WHITNEY','1eg_lb5T8kY'],['SPECIAL','hesCXfu5R5Y']];
  const query=matchMedia('(prefers-reduced-motion: reduce)');
  let reduced=query.matches,index=0,running=false,paused=false,inspecting=false,muted=false,transition=0,last=0,playing=false;
- let needsGesture=false,mediaFailed=false,playRequest=0;
+ let needsGesture=false,mediaFailed=false,playRequest=0,depthSupported=true;
  const screen=$('screen'),videos=[document.createElement('video'),document.createElement('video')];
  const wrapper=$('player-wrap');wrapper.replaceChildren(...videos);wrapper.hidden=false;
  const camera=document.createElement('div');camera.className='flight-camera';wrapper.replaceChildren(camera);
@@ -22,7 +22,7 @@
  function current(){return videos[0];}
  function setLoading(value){screen.classList.toggle('loading',value);panels[index].classList.toggle('is-loading',value);panels[index].setAttribute('aria-busy',String(value));}
  function updateSound(){
-  const label=mediaFailed?'Retry':needsGesture?(muted?'Play':'Play sound'):muted?'Unmute':'Mute';
+  const label=mediaFailed?'Retry':paused?'Resume':needsGesture?(muted?'Play':'Play sound'):muted?'Unmute':'Mute';
   $('sound').textContent=label;$('sound').setAttribute('aria-label',label);
   $('sound').setAttribute('aria-pressed',String(muted));
  }
@@ -30,7 +30,7 @@
  function prepare(v,i){if(i>=tracks.length)return;const src=`assets/previews/${tracks[i][1]}-hq.mp4`;if(v.dataset.source!==src){v.dataset.source=src;v.poster=tracks[i][1]==='hesCXfu5R5Y'?'assets/special-court-cover.png':`assets/${tracks[i][1]}-hd.jpg`;v.src=src;v.load();}}
  async function play(){const v=current(),request=++playRequest;v.muted=muted;try{await v.play();}catch(e){if(request!==playRequest||!running||paused||e.name==='AbortError')return;if(e.name!=='NotAllowedError'){showMediaError();return;}playing=false;needsGesture=true;mediaFailed=false;setLoading(false);updateSound();$('media-status').textContent=muted?'Tap Play above to continue muted.':'Tap Play sound above to start the music.';}}
  function choose(i){++playRequest;videos.forEach(v=>{v.pause();v.hidden=true;});panels.forEach(panel=>{panel.classList.remove('is-loading','has-frame');panel.setAttribute('aria-busy','false');});index=i;playing=false;needsGesture=false;mediaFailed=false;transition=0;paused=false;inspecting=false;document.body.classList.remove('inspecting');document.body.classList.add('previewing');setLoading(true);
-  panels.forEach((panel,n)=>panel.tabIndex=n===i?0:-1);const [name,id]=tracks[i];prepare(current(),i);panels[i].append(current());current().currentTime=0;current().hidden=false;prepare(videos[1],i+1);if(panels[i+1])panels[i+1].append(videos[1]);
+  panels.forEach((panel,n)=>{panel.tabIndex=n===i?0:-1;panel.inert=n!==i;});const [name,id]=tracks[i];prepare(current(),i);panels[i].append(current());current().currentTime=0;current().hidden=false;prepare(videos[1],i+1);if(panels[i+1])panels[i+1].append(videos[1]);
   $('poster').src=id==='hesCXfu5R5Y'?'assets/special-court-cover.png':`assets/${id}-hd.jpg`;$('poster').alt=`${name} video artwork`;
   $('track-title').textContent=name;$('screen-name').textContent=name;$('chapter').textContent='';$('counter').textContent=`${String(i+1).padStart(2,'0')} / ${tracks.length}`;$('transmission').textContent=String(i+1).padStart(2,'0');$('watch').href=`https://www.youtube.com/watch?v=${id}`;
   $('phase').textContent='IN FLIGHT';$('media-status').textContent='Loading the preview…';$('pause').textContent='Pause flight';$('pause').setAttribute('aria-pressed','false');updateSound();play();
@@ -38,9 +38,10 @@
  function launch(){running=true;$('sound').hidden=false;$('journey').hidden=false;$('arrival').hidden=true;choose(0);}
  function finish(){running=false;++playRequest;videos.forEach(v=>v.pause());$('sound').hidden=true;$('journey').hidden=true;$('arrival').hidden=false;$('replay').focus({preventScroll:true});}
  function next(){if(index+1===tracks.length)finish();else choose(index+1);}
- function pause(value){paused=value;$('pause').textContent=value?'Resume flight':'Pause flight';$('pause').setAttribute('aria-pressed',String(value));$('phase').textContent=value?'FLIGHT PAUSED':'IN FLIGHT';$('media-status').textContent=value?'Music and flight paused.':'Playing automatically · next song follows';if(value){setLoading(false);current().pause();}else{setLoading(true);inspecting=false;document.body.classList.remove('inspecting');play();}}
+ function pause(value){paused=value;updateSound();$('pause').textContent=value?'Resume flight':'Pause flight';$('pause').setAttribute('aria-pressed',String(value));$('phase').textContent=value?'FLIGHT PAUSED':'IN FLIGHT';$('media-status').textContent=value?'Music and flight paused.':'Playing automatically · next song follows';if(value){setLoading(false);current().pause();}else{setLoading(true);inspecting=false;document.body.classList.remove('inspecting');play();}}
  $('pause').addEventListener('click',()=>pause(inspecting?false:!paused));$('next').addEventListener('click',next);$('replay').addEventListener('click',launch);
  $('sound').addEventListener('click',()=>{
+  if(paused&&!mediaFailed&&!needsGesture){pause(false);return;}
   if(needsGesture||mediaFailed){paused=false;needsGesture=false;mediaFailed=false;setLoading(true);if(current().error)current().load();}
   else muted=!muted;
   current().muted=muted;updateSound();
@@ -50,7 +51,7 @@
  });
  $('inspect').addEventListener('click',()=>{inspecting=true;document.body.classList.add('inspecting');$('pause').textContent='Continue flight';$('media-status').textContent='Stay with this clip · Continue flight when ready';});
  $('watch').addEventListener('click',()=>pause(true));
- function motion(){ $('motion').textContent=reduced?'Motion off':'Reduce motion';$('motion').setAttribute('aria-pressed',String(reduced));}
+ function motion(){ document.body.classList.toggle('flat-flight',reduced||!depthSupported);$('motion').textContent=reduced?'Motion off':'Reduce motion';$('motion').setAttribute('aria-pressed',String(reduced));}
  $('motion').addEventListener('click',()=>{reduced=!reduced;motion();});query.addEventListener('change',e=>{reduced=e.matches;motion();});motion();
  let resumeAfterVisibility=false;
  document.addEventListener('visibilitychange',()=>{if(!running)return;if(document.hidden){resumeAfterVisibility=!paused;if(resumeAfterVisibility)pause(true);}else if(resumeAfterVisibility){resumeAfterVisibility=false;pause(false);}});window.addEventListener('pagehide',()=>videos.forEach(v=>v.pause()));document.addEventListener('keydown',e=>{if(e.key==='Escape'){videos.forEach(v=>v.pause());if(window.KweTransitions)window.KweTransitions.navigate('index.html#listen');else location.href='index.html#listen';}});
@@ -67,4 +68,11 @@
    progress.style.width=`${(index+Math.min(1,t/d))/tracks.length*100}%`;
   }requestAnimationFrame(frame);
  }requestAnimationFrame(frame);launch();
+ // Verify actual perspective projection; some media/browser backends flatten
+ // distant panels even though they accept the CSS 3D properties.
+ document.body.classList.remove('flat-flight');
+ const nearWidth=panels[0].getBoundingClientRect().width;
+ const farWidth=panels[2].getBoundingClientRect().width;
+ depthSupported=nearWidth>0&&farWidth<nearWidth*.8;
+ motion();
 })();
