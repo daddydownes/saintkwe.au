@@ -1,4 +1,4 @@
-/* Approved Lens close opening with continuous title handoff. */
+/* Soft opening fade with continuous title handoff. */
 (() => {
   'use strict';
  const root=document.documentElement;
@@ -27,7 +27,7 @@
     const layer = document.createElement('div');
     layer.className = 'kwe-aperture is-preparing';
     layer.setAttribute('aria-label', 'Saint Kwe opening animation');
-    layer.innerHTML = '<div class="kwe-aperture-curtain top"></div><div class="kwe-aperture-curtain bottom"></div><div class="kwe-aperture-film is-loading" aria-hidden="true"><video muted playsinline preload="metadata" poster="assets/concert-cultrd-125-full.jpg"><source data-src="assets/july20-intro.mp4?v=original-restored" type="video/mp4"></video></div><div class="kwe-aperture-line" aria-hidden="true"></div><p class="kwe-aperture-title" aria-hidden="true"><span class="kwe-aperture-outline">SAINT KWE</span><span class="kwe-aperture-fill">SAINT KWE</span></p><p class="kwe-aperture-eyebrow" aria-hidden="true">MUSIC &nbsp;/&nbsp; VISUALS</p>';
+    layer.innerHTML = '<div class="kwe-aperture-backdrop" aria-hidden="true"></div><div class="kwe-aperture-film is-loading" aria-hidden="true"><video muted playsinline preload="metadata" poster="assets/concert-cultrd-125-full.jpg"><source data-src="assets/july20-intro.mp4?v=original-restored" type="video/mp4"></video></div><p class="kwe-aperture-title" aria-hidden="true"><span class="kwe-aperture-outline">SAINT KWE</span><span class="kwe-aperture-fill">SAINT KWE</span></p>';
     document.body.append(layer);
     const inertTargets=[...document.body.children].filter(el=>el!==layer&&el.tagName!=='SCRIPT').map(el=>[el,el.inert]);
     inertTargets.forEach(([el])=>el.inert=true);
@@ -50,8 +50,7 @@
     skip.hidden = true;
     const title = layer.querySelector('.kwe-aperture-title');
     const fill = layer.querySelector('.kwe-aperture-fill');
-    const line = layer.querySelector('.kwe-aperture-line');
-    const eyebrow = layer.querySelector('.kwe-aperture-eyebrow');
+    const backdrop = layer.querySelector('.kwe-aperture-backdrop');
     const animations = [];
     let started = false;
     let done = false;
@@ -113,13 +112,11 @@
       layer.classList.remove('is-preparing');
       controls.hidden = true;
       root.classList.add('aperture-handoff');
-      animate(line, [{transform:'scaleX(0)'},{transform:'scaleX(1)',offset:.7},{transform:'scaleX(1)',opacity:0}], 850);
-      animate(film, [{clipPath:'inset(49.85% 0)'},{clipPath:'inset(24% 0)'}], 1250, 250);
+      animate(film, [{opacity:0},{opacity:1}], 1250, 250);
       animate(title, [{opacity:1,transform:'scale(.92)'},{opacity:1,transform:'scale(1)'}], 1150, 300);
       // Extend the reveal above/below the tight line box so tall glyphs fill completely.
       animate(fill, [{clipPath:'inset(-.5em 100% -.5em -.12em)'},{clipPath:'inset(-.5em -.12em -.5em -.12em)'}], 1300, 650, 'cubic-bezier(.4,0,.6,1)');
-      animate(eyebrow, [{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'translateY(0)'}], 650, 1250);
-      // Carry the same title into the real homepage heading while the aperture opens.
+      // Carry the title into the homepage while the footage fades into the hero.
       afterPlayback(2400,()=>{
         if(done)return;
         try{
@@ -135,11 +132,8 @@
           const y=target.top+target.height/2-oy-sy*(source.top+source.height/2-oy);
           animate(title,[{transform:'translate(0,0) scale(1)',opacity:1},{transform:`translate(${x}px,${y}px) scale(${sx},${sy})`,opacity:1}],1450,0,'cubic-bezier(.65,0,.2,1)');
           animate(layer.querySelector('.kwe-aperture-outline'),[{opacity:1},{opacity:0}],500);
-          animate(layer.querySelector('.top'),[{transform:'translateY(0)'},{transform:'translateY(-100%)'}],1450,0,'cubic-bezier(.65,0,.2,1)');
-          animate(layer.querySelector('.bottom'),[{transform:'translateY(0)'},{transform:'translateY(100%)'}],1450,0,'cubic-bezier(.65,0,.2,1)');
-          const W=innerWidth,H=innerHeight,radius=Math.min(W,H)*.18;
-          animate(film,[{clipPath:'inset(24% 0 round 0px)'},{clipPath:`inset(${H/2-radius}px ${W/2-radius}px round ${radius}px)`,offset:.62},{clipPath:'inset(50% 50% round 100px)'}],1800,0,'cubic-bezier(.55,0,.2,1)');
-          animate(eyebrow,[{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(-18px)'}],450);
+          animate(backdrop,[{opacity:1},{opacity:0}],1450,0,'cubic-bezier(.65,0,.2,1)');
+          animate(film,[{opacity:1},{opacity:0}],1800,0,'cubic-bezier(.55,0,.2,1)');
           afterPlayback(1860,finish);
         }catch{finish();}
       });
