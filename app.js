@@ -96,12 +96,12 @@ if (!matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObse
   window.visualViewport?.addEventListener('resize', scheduleConfigure);
   reduced.addEventListener('change', configure);
   document.fonts.ready.then(scheduleConfigure);
+  configure();
   let measuredWidth = 0;
-  new ResizeObserver(entries => {
+  if ('ResizeObserver' in window) new ResizeObserver(entries => {
     const width = entries[0].contentRect.width;
     if (width !== measuredWidth) { measuredWidth = width; scheduleConfigure(); }
   }).observe(runway);
-  configure();
 })();
 
 

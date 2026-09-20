@@ -1,8 +1,9 @@
 {
-  "files": 47,
-  "asset_bytes": 53147980,
+  "files": 92,
+  "asset_bytes": 63726426,
   "pages": [
     "index.html",
+    "catalog.html",
     "flight.html"
   ]
 }

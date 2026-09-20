@@ -178,7 +178,15 @@
     function play(restart = false) {
       if(done || document.hidden || (pendingPlay && !restart))return;
       const attempt=++playAttempt;
-      if(restart){downloadController.abort();downloadController=new AbortController();}
+      if(restart){
+        downloadController.abort();downloadController=new AbortController();
+        // A decoded-media failure poisons the Blob, so Retry needs fresh bytes.
+        // Autoplay rejection still reuses the complete, valid download.
+        if(clipObjectUrl && video.error){
+          video.pause();video.removeAttribute('src');video.load();
+          URL.revokeObjectURL(clipObjectUrl);clipObjectUrl=null;frameReady=false;
+        }
+      }
       waiting();retry.hidden=true;status.textContent='Loading the opening…';
       controls.hidden=true;
       pendingPlay=(async()=>{

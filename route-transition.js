@@ -3,7 +3,16 @@
  const root=document.documentElement,key='kwe-route-transition';
  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
  let busy=false,cleanup,departure,pendingHref;
- function reset(){clearTimeout(cleanup);clearTimeout(departure);departure=null;pendingHref=null;root.classList.remove('kwe-route','kwe-route-cover','kwe-route-reveal');delete root.dataset.kweDirection;busy=false;}
+ let lockedBody,previousBodyInert,previousFocus;
+ function reset(){
+  clearTimeout(cleanup);clearTimeout(departure);departure=null;pendingHref=null;
+  root.classList.remove('kwe-route','kwe-route-cover','kwe-route-reveal');delete root.dataset.kweDirection;busy=false;
+  if(lockedBody){
+   lockedBody.inert=previousBodyInert;
+   if(!previousBodyInert&&previousFocus?.isConnected&&document.activeElement===lockedBody)previousFocus.focus?.({preventScroll:true});
+   lockedBody=null;previousFocus=null;
+  }
+ }
  function mark(direction){root.dataset.kweDirection=direction;root.classList.add('kwe-route');}
  // Set the arrival cover before the new document paints. Never cover a direct visit.
  try{
@@ -23,6 +32,9 @@
   if(busy){if(pendingHref)return;reset();}
   if(reduced.matches){location.assign(target.href);return;}
   busy=true;
+  // The departing page must not accept keyboard navigation behind the shutter.
+  // Arrival remains interactive so an immediate Exit is never swallowed.
+  lockedBody=document.body;previousBodyInert=lockedBody.inert;previousFocus=document.activeElement;lockedBody.inert=true;
   const direction=target.pathname.endsWith('/flight.html')?'enter':'exit';
   mark(direction);root.classList.add('kwe-route-cover');
   if(direction==='exit')document.querySelectorAll('video,audio').forEach(media=>media.pause());
