@@ -480,6 +480,3 @@ body[data-front="3"] .front-visual img{object-position:50% 42%}@media(max-width:
 
 /* Fade the footage to black inside the existing circular closing mask. */
 .kwe-aperture-blackout{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none}
-
-/* Feather the opening footage at its moving edge, then clear before the close. */
-.kwe-aperture-film{mask-image:linear-gradient(to bottom,transparent,#000 20%,#000 80%,transparent);mask-position:center;mask-repeat:no-repeat;mask-size:100% .3%}
