@@ -29,6 +29,7 @@ if (!matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObse
       }
       panel.inert = !open;
       panel.setAttribute('aria-hidden', String(!open));
+      if(open)window.KweMedia?.loadWithin(panel);
     });
   }
   function update() {
@@ -133,6 +134,6 @@ if (!matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObse
   }
   img.addEventListener('load', show);
   img.addEventListener('error', fail);
-  if (img.complete) { if (img.naturalWidth) show(); else fail(); }
+  if (img.complete && !img.dataset.src) { if (img.naturalWidth) show(); else fail(); }
  });
 })();

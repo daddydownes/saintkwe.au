@@ -1,0 +1,112 @@
+:root{color-scheme:dark;--red:#ff3038;--text:#f4f2ef;--display:'Barlow Condensed',Impact,sans-serif}*{box-sizing:border-box}body{margin:0;background:#000;color:var(--text);font:14px/1.5 Inter,Arial,sans-serif;overflow:hidden}button,a{-webkit-tap-highlight-color:transparent}button{font:inherit;cursor:pointer}a{color:inherit;text-decoration:none}button{color:inherit;border:0;background:none}a:focus-visible,button:focus-visible{outline:2px solid var(--red);outline-offset:5px}[hidden]{display:none!important}#space,.ambient{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}.ambient{background:radial-gradient(ellipse at 50% 48%,transparent 15%,#0007 75%);z-index:1}header{position:fixed;z-index:20;top:0;left:0;right:0;padding:25px 4%;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{font:900 32px/1 var(--display)}.brand span{font:10px Inter,Arial,sans-serif;color:#8b8585;letter-spacing:.16em;vertical-align:middle;margin-left:12px}.exit{font-size:12px;color:#aaa;min-height:44px;display:flex;align-items:center}main{position:relative;z-index:2;height:100svh}.boarding{position:absolute;inset:0;padding:12vh 9% 6vh;display:flex;flex-direction:column;justify-content:center;align-items:flex-start}.eyebrow{font-size:10px;letter-spacing:.24em;color:#a89a9a;margin:0 0 12px}h1{font:900 clamp(80px,15vw,210px)/.8 var(--display);letter-spacing:-.025em;margin:20px 0 30px}em{font-style:normal;color:var(--red)}.intro{color:#a5a0a0;line-height:1.8;margin-bottom:25px}.primary{background:var(--red);color:#000;padding:18px 24px;min-width:210px;display:flex;justify-content:space-between;font-weight:600}.small{font-size:11px;color:#696565;margin-top:18px}#journey{height:100%;perspective:1000px}.route-status{position:absolute;top:95px;left:4%;right:4%;display:flex;justify-content:space-between;color:#897d7d;font-size:10px;letter-spacing:.2em}#world{position:absolute;inset:0;overflow:hidden;pointer-events:none}.memory{position:absolute;top:30%;width:clamp(90px,17vw,250px);height:35vh;object-fit:cover;opacity:0;will-change:transform,opacity;filter:brightness(.7)}.screen{position:absolute;top:46%;left:50%;width:min(69vw,1000px);transform:translate(-50%,-50%);will-change:transform,opacity;background:#050505;box-shadow:0 0 70px #ff303811}.screen-top,.screen-bottom{height:26px;background:#120809;display:flex;align-items:center;justify-content:space-between;padding:0 12px;font-size:9px;letter-spacing:.16em;color:#b3a3a3}.screen-top{color:#d94a4e}.screen-media{position:relative;aspect-ratio:16/9;min-height:200px;overflow:hidden;background:#090909}#poster{width:100%;height:100%;position:absolute;inset:0;object-fit:cover}#player-wrap{position:absolute;inset:0;background:#000}#player-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}#inspect{position:absolute;inset:0;width:100%;height:100%;background:transparent}#inspect span{position:absolute;bottom:20px;right:20px;padding:9px 15px;background:#000b;backdrop-filter:blur(6px);font-size:12px}body.previewing #inspect{inset:auto 0 0 auto;width:auto;height:auto}body.previewing #inspect span{position:static;display:block;margin:12px}body.inspecting #inspect{display:none}.track-caption{position:absolute;left:5%;right:5%;bottom:110px;text-align:center;pointer-events:none}.track-caption h2{font:800 clamp(32px,5vw,68px)/1 var(--display);margin:0 0 8px}.track-caption p:not(.eyebrow){font-size:11px;color:#a19797;margin:8px 0}.track-caption a,.track-caption button{pointer-events:auto;font-size:11px;display:inline-flex;align-items:center;min-height:30px}.track-caption a{color:#ddd}.track-caption button{background:#ff3038;color:#000;padding:7px 12px;margin-right:15px}.flight-controls{position:absolute;bottom:38px;left:4%;right:4%;display:flex;align-items:center;justify-content:center;gap:20px}.flight-controls button{font-size:11px;min-height:44px;color:#b4aaa9;padding:8px 12px}.flight-controls button:hover{color:#fff}.flight-controls #pause{background:#f5f1ec;color:#090909;min-width:125px}.timeline{position:absolute;bottom:16px;left:5%;right:5%;height:2px;background:#251719}.timeline div{height:100%;width:0;background:var(--red);box-shadow:0 0 12px #ff3038}.arrival{height:100%;padding:90px 5% 30px;text-align:center;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px}.arrival h2{font:900 clamp(55px,8vw,100px)/.85 var(--display);margin:0}.arrival>img{width:min(24vh,200px);height:min(24vh,200px);object-fit:cover}.destinations{display:flex;align-items:center;gap:30px}.destinations a{width:48px;height:48px;display:grid;place-items:center}.destinations img{width:38px;height:38px;object-fit:contain}.destinations a:last-child img{width:60px;height:60px;max-width:none}.arrival>button,.arrival>a{font-size:12px;min-height:35px}.arrival>button{color:var(--red)}.no-script{position:relative;z-index:30;padding:100px 10%}
+@media(max-width:600px){header{padding:16px 5%}.brand{font-size:27px}.brand span{font-size:8px;margin-left:7px;letter-spacing:.06em}.exit{font-size:10px}.boarding{padding-inline:7%}h1{font-size:25vw}.screen{width:90vw;top:43%}.screen-media{aspect-ratio:4/3}.route-status{top:80px}.track-caption{bottom:145px}.track-caption h2{font-size:38px}.flight-controls{bottom:33px;gap:4px;flex-wrap:wrap}.flight-controls button{padding:6px 8px;font-size:10px}.flight-controls #pause{min-width:100px}.memory{height:24vh;width:30vw}.track-caption .eyebrow{margin-bottom:7px}.arrival{gap:15px}.arrival>img{width:21vh;height:21vh}}
+@media(max-height:650px){.screen{width:min(52vw,650px);top:42%}.screen-media{min-height:200px}.track-caption{bottom:85px}.track-caption h2{font-size:29px}.track-caption .eyebrow{display:none}.track-caption p:not(.eyebrow){margin:2px 0}.flight-controls{bottom:21px}.route-status{top:70px}.arrival{padding-top:70px;gap:8px}.arrival h2{font-size:45px}.arrival>img{width:17vh;height:17vh}}
+@media(max-width:600px) and (max-height:700px){.screen{width:90vw;top:40%}.screen-media{aspect-ratio:16/9}.track-caption{bottom:120px}}
+@media(prefers-reduced-motion:reduce){#space,.memory{display:none}}
+
+/* Reserve distinct video, caption and control areas at every viewport height. */
+.no-script{position:fixed;inset:90px 0 0;padding:24px 10%;margin:0;overflow:auto}
+#journey{display:flex;flex-direction:column;padding:110px 5% 30px;gap:12px;height:100svh;overflow:hidden}
+.screen{position:relative;top:auto;left:auto;flex:1;min-height:100px;width:100%;max-width:1100px;align-self:center;display:flex;flex-direction:column;transform:none;background:transparent;box-shadow:none}
+.screen-media{flex:1;min-height:0;aspect-ratio:auto;overflow:hidden;background:#000}
+.screen-top,.screen-bottom{flex:none;background:transparent;height:20px}
+#player-wrap{background:transparent}
+#player-wrap{perspective:750px;perspective-origin:50% 50%;overflow:hidden}
+.flight-camera{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform}
+.flat-flight .flight-camera{transform:none!important}
+.flat-flight .flight-panel{transform:none!important;visibility:hidden}
+.flat-flight .flight-panel[tabindex="0"]{visibility:visible}
+.flight-panel{position:absolute;inset:0;backface-visibility:hidden;background:#000}
+.flight-panel img,#player-wrap video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
+#poster{visibility:hidden}
+#poster{object-fit:contain;transition:filter .3s,opacity .3s}
+.screen.loading #poster{filter:blur(12px);opacity:.45}
+.screen.loading .screen-media:after{content:'';position:absolute;width:28px;height:28px;left:calc(50% - 14px);top:calc(50% - 14px);border:2px solid #ffffff30;border-top-color:#ff3038;border-radius:50%;animation:load-spin .8s linear infinite;pointer-events:none}
+.track-caption{position:relative;left:auto;right:auto;bottom:auto;flex:none;padding:0;text-align:center}
+.track-caption h2{font-size:clamp(28px,4vw,48px);margin:0}
+.track-caption .eyebrow:empty{display:none}
+.track-caption p:not(.eyebrow){margin:4px 0;font-size:11px}
+.track-caption a,.track-caption button{min-height:36px}
+.flight-controls{position:relative;left:auto;right:auto;bottom:auto;flex:none;gap:8px;margin:0;flex-wrap:wrap}
+.route-status{top:80px}.memory{display:block;pointer-events:none}.track-caption,.flight-controls{z-index:4;background:linear-gradient(transparent,#000 22%)}
+body.previewing #inspect span{background:#000b;margin:4px;padding:8px 12px}
+.arrival{overflow:auto}.arrival>a,.arrival>button{min-height:44px;flex-shrink:0}
+@keyframes load-spin{to{transform:rotate(360deg)}}
+@media(max-width:600px){#journey{padding:94px 4% 24px;gap:8px}.route-status{top:68px}.track-caption h2{font-size:30px}.flight-controls{gap:2px}.flight-controls button{padding:6px 8px}.screen-top,.screen-bottom{font-size:8px}.track-caption p:not(.eyebrow){font-size:10px}#player-wrap video,#poster{object-fit:cover}}
+@media(max-height:500px) and (min-width:601px){#journey{padding:76px 5% 20px;gap:5px}.route-status{top:58px}.track-caption h2{font-size:24px}.track-caption p:not(.eyebrow){display:none}.screen-top,.screen-bottom{display:none}.track-caption a{min-height:28px}.flight-controls button{min-height:36px}.arrival{justify-content:flex-start}}
+@media(prefers-reduced-motion:reduce){.screen.loading .screen-media:after{animation:none}.screen{transform:none!important}#poster{transition:none}}
+@media(max-width:600px){.flight-panel img{object-fit:cover}}
+/* The flight is the visual; keep the surrounding black space quiet. */
+#space,#world,.ambient,.flight-controls,#inspect,.timeline{display:none!important}
+.exit{color:#fff;font-size:13px;padding:0 16px;min-height:44px;background:#171717;border-radius:3px}
+.track-caption{padding-bottom:8px}
+.flight-panel{cursor:pointer;display:block}
+.flight-panel:after{content:'Watch full video ↗';position:absolute;bottom:14px;right:14px;padding:8px 12px;background:#000b;color:#fff;font-size:12px;opacity:0;transition:opacity .18s;pointer-events:none}
+.flight-panel:hover:after,.flight-panel:focus-visible:after{opacity:1}
+.flight-panel:focus-visible{outline:2px solid #ff3038;outline-offset:-3px}
+@media(hover:none){.flight-panel:after{opacity:1}}
+#watch[hidden]{display:none!important}
+
+/* Keep the experience focused on the clip and its title. */
+.route-status,.screen-top,.screen-bottom,.flight-panel:after{display:none!important}
+
+/* One sound control stays beside Exit without changing the video layout. */
+.experience-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.sound-toggle{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 14px;background:#171717;border-radius:3px;color:#fff;font-size:13px;white-space:nowrap}
+.sound-toggle[aria-pressed="true"]{color:#aaa}
+@media(max-width:600px){header{gap:8px}.experience-actions{gap:6px}.sound-toggle{font-size:10px;padding:0 10px}}
+@media(max-width:360px){.experience-actions{gap:4px}.sound-toggle,.experience-actions .exit{padding:0 8px}}
+
+/* Keep original HD artwork visible until a decoded video frame is playing. */
+.flight-panel{overflow:hidden}
+.flight-panel video{opacity:0}
+.flight-panel.has-frame video{opacity:1}
+.flight-panel.is-loading img,.flight-panel.is-loading.has-frame video{animation:kwe-buffer-breathe 2.2s ease-in-out infinite}
+.flight-panel.is-loading::before{content:'LOADING';position:absolute;z-index:3;left:50%;top:50%;transform:translate(-50%,-50%);padding:10px 16px;background:#0008;color:#fff;font:500 10px/1.4 Inter,Arial,sans-serif;letter-spacing:.2em;pointer-events:none}
+.screen.loading .screen-media:after{display:none}
+@keyframes kwe-buffer-breathe{0%,100%{filter:blur(0)}50%{filter:blur(5px)}}
+@media(prefers-reduced-motion:reduce){.flight-panel.is-loading img,.flight-panel.is-loading.has-frame video{animation:none}}
+
+/* Selected demo 01: opposing red shutters, reversed on exit. */
+html.kwe-route::before,html.kwe-route::after{content:'';position:fixed;top:0;width:calc(50% + 1px);height:100%;z-index:2147483646;background:#e12830;pointer-events:auto;will-change:transform;--offscreen:-101%;transform:translateY(0)}
+html.kwe-route::before{left:0;box-shadow:inset -1px 0 rgba(30,0,0,.28)}
+html.kwe-route::after{right:0;--offscreen:101%}
+html.kwe-route[data-kwe-direction='exit']::before{--offscreen:101%}
+html.kwe-route[data-kwe-direction='exit']::after{--offscreen:-101%}
+html.kwe-route-cover::before,html.kwe-route-cover::after{animation:kwe-route-close 620ms cubic-bezier(.76,0,.24,1) both}
+html.kwe-route-reveal::before,html.kwe-route-reveal::after{animation:kwe-route-open 640ms cubic-bezier(.76,0,.24,1) both}
+@keyframes kwe-route-close{from{transform:translateY(var(--offscreen))}to{transform:translateY(0)}}
+@keyframes kwe-route-open{from{transform:translateY(0)}to{transform:translateY(calc(var(--offscreen) * -1))}}
+@media(prefers-reduced-motion:reduce){html.kwe-route::before,html.kwe-route::after{display:none;animation:none}}
+/* Arrival shutters are decorative; a quick tap on a revealed link must work. */
+html.kwe-route:not(.kwe-route-cover)::before,html.kwe-route:not(.kwe-route-cover)::after{pointer-events:none}
+
+/* Interaction-only motion: no photo reveals or song-title animation. */
+@media(prefers-reduced-motion:no-preference){
+ .platform-link,.track-platforms a{transition:translate .22s ease,filter .22s ease}
+ .video-feature .media-frame>img,.video-image a .media-frame>img{transition:scale .45s cubic-bezier(.2,.65,.3,1)}
+ .platform-link:focus-visible,.track-platforms a:focus-visible{translate:0 -3px;filter:drop-shadow(0 4px 9px #ffffff24)}
+ .platform-link:active,.track-platforms a:active{translate:0 -1px;filter:drop-shadow(0 2px 7px #ffffff38)}
+ .video-feature:focus-visible .media-frame>img,.video-image a:focus-visible .media-frame>img,
+ .video-feature:active .media-frame>img,.video-image a:active .media-frame>img{scale:1.025}
+ .video-feature:focus-visible .play-circle::before,.video-image a:focus-visible .scroll-play::before,
+ .video-feature:active .play-circle::before,.video-image a:active .scroll-play::before{animation:kwe-play-pulse .65s ease-out}
+ @media(hover:hover) and (pointer:fine){
+  .platform-link:hover,.track-platforms a:hover{translate:0 -3px;filter:drop-shadow(0 4px 9px #ffffff24)}
+  .video-feature:hover .media-frame>img,.video-image a:hover .media-frame>img{scale:1.025}
+  .video-feature:hover .play-circle::before,.video-image a:hover .scroll-play::before{animation:kwe-play-pulse .65s ease-out}
+ }
+}
+@keyframes kwe-play-pulse{0%{scale:1;opacity:1}100%{scale:1.4;opacity:0}}
+.sound-toggle{position:relative;overflow:hidden;isolation:isolate}
+.sound-toggle::after{content:'';position:absolute;inset:-12px;border-radius:50%;background:radial-gradient(circle,#ffffff4d,transparent 68%);opacity:0;pointer-events:none}
+@media(prefers-reduced-motion:no-preference){.sound-toggle.is-rippling::after{animation:kwe-sound-ripple .5s ease-out}}
+@keyframes kwe-sound-ripple{0%{scale:.15;opacity:0}20%{opacity:.8}100%{scale:1.7;opacity:0}}
+
+/* Prominent audio invitation, with the corner Mute control while playing. */
+.play-music{position:fixed;z-index:30;left:50%;top:50%;transform:translate(-50%,-50%);display:inline-flex;align-items:center;justify-content:center;gap:14px;min-height:76px;max-width:calc(100vw - 32px);padding:20px 32px;border:0;border-radius:4px;background:#ff3038;color:#080808;font:600 22px/1.2 Inter,Arial,sans-serif;white-space:nowrap;box-shadow:0 8px 40px #0009;cursor:pointer}
+.play-music[hidden]{display:none!important}.play-music svg{width:24px;height:24px;flex-shrink:0}
+.play-music:hover,.experience-actions .exit:hover{background:#ff535a}
+.play-music:focus-visible,.experience-actions .exit:focus-visible{outline:3px solid #fff;outline-offset:5px}
+.experience-actions .exit{background:#ff3038;color:#080808;font-weight:600}
+@media(max-width:600px){.play-music{min-height:68px;padding:18px 28px;font-size:20px}}

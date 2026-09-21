@@ -27,13 +27,14 @@
     const layer = document.createElement('div');
     layer.className = 'kwe-aperture is-preparing';
     layer.setAttribute('aria-label', 'Saint Kwe opening animation');
-    layer.innerHTML = '<div class="kwe-aperture-curtain top"></div><div class="kwe-aperture-curtain bottom"></div><div class="kwe-aperture-film is-loading" aria-hidden="true"><video muted playsinline preload="metadata" poster="assets/concert-cultrd-125-full.jpg"><source data-src="assets/july20-intro.mp4?v=original-restored" type="video/mp4"></video></div><div class="kwe-aperture-line" aria-hidden="true"></div><p class="kwe-aperture-title" aria-hidden="true"><span class="kwe-aperture-outline">SAINT KWE</span><span class="kwe-aperture-fill">SAINT KWE</span></p>';
+    layer.innerHTML = '<div class="kwe-aperture-curtain top"></div><div class="kwe-aperture-curtain bottom"></div><div class="kwe-aperture-film is-loading" aria-hidden="true"><video muted playsinline preload="metadata" poster="assets/optimized/intro-poster.webp"><source data-src="assets/july20-intro.mp4?v=original-restored" type="video/mp4"></video></div><div class="kwe-aperture-line" aria-hidden="true"></div><p class="kwe-aperture-title" aria-hidden="true"><span class="kwe-aperture-outline">SAINT KWE</span><span class="kwe-aperture-fill">SAINT KWE</span></p>';
     document.body.append(layer);
     const inertTargets=[...document.body.children].filter(el=>el!==layer&&el.tagName!=='SCRIPT').map(el=>[el,el.inert]);
     inertTargets.forEach(([el])=>el.inert=true);
     const film = layer.querySelector('.kwe-aperture-film');
     const video = layer.querySelector('video');
-    const clipUrl = video.querySelector('source').dataset.src;
+    const fallbackUrl = 'assets/optimized/intro-h264.mp4';
+    let clipUrl = video.canPlayType('video/mp4; codecs="av01.0.08M.08"') ? 'assets/optimized/intro-av1.mp4' : fallbackUrl;
     // Fetch the whole file ourselves: preload/canplaythrough are only hints.
     video.querySelector('source').remove();
     video.preload = 'auto';
@@ -87,6 +88,7 @@
       const restoreFocus = layer.contains(document.activeElement);
       layer.remove();
       inertTargets.forEach(([el,previous])=>el.inert=previous);
+      window.dispatchEvent(new Event('kwe:intro-finished'));
       if (restoreFocus) document.querySelector('.flight-launch')?.focus({ preventScroll: true });
       window.removeEventListener('hashchange', finish);
       window.removeEventListener('pagehide', finish);
@@ -191,7 +193,7 @@
       pendingPlay=(async()=>{
         if(!clipObjectUrl){
           try {
-            const response=await fetch(clipUrl,{signal:downloadController.signal});
+            const response=await fetch(clipUrl,{signal:downloadController.signal,priority:'high'});
             if(!response.ok)throw new Error(`Opening download failed: ${response.status}`);
             const clip=await response.blob();
             if(done || attempt!==playAttempt)return;
@@ -213,7 +215,11 @@
     }
     video.addEventListener('playing',playing);
     video.addEventListener('waiting',waiting);
-    video.addEventListener('error',()=>{waiting();recovery('The opening could not load. Try again.');});
+    video.addEventListener('error',()=>{
+      if(done)return;
+      if(clipUrl!==fallbackUrl){clipUrl=fallbackUrl;pendingPlay=null;play(true);return;}
+      waiting();recovery('The opening could not load. Try again.');
+    });
     // Keep the reveal alive if a short clip reaches its end during loading.
     video.loop=true;
     retry.addEventListener('click',()=>play(true));

@@ -2,6 +2,7 @@
  'use strict';
  const $=id=>document.getElementById(id);
  const tracks=[['SUMMER AIN’T OVER','e_RMY3Msjro'],['WHO DEM BOYS','b9i6DAuP5qw'],['BABY BOY FREESTYLE','jFzVBUUswUA'],['BOBBY & WHITNEY','1eg_lb5T8kY'],['SPECIAL','hesCXfu5R5Y']];
+ const artwork=id=>id==='hesCXfu5R5Y'?'assets/special-court-cover.png':id==='b9i6DAuP5qw'?'assets/b9i6DAuP5qw-hd.jpg':`assets/optimized/${id}-hd.webp`;
  const query=matchMedia('(prefers-reduced-motion: reduce)');
  let reduced=query.matches,index=0,running=false,paused=false,inspecting=false,muted=false,transition=0,last=0,playing=false;
  let needsGesture=false,mediaFailed=false,playRequest=0,depthSupported=true;
@@ -9,7 +10,7 @@
  const screen=$('screen'),videos=[document.createElement('video'),document.createElement('video')];
  const wrapper=$('player-wrap');wrapper.replaceChildren(...videos);wrapper.hidden=false;
  const camera=document.createElement('div');camera.className='flight-camera';wrapper.replaceChildren(camera);
- const panels=tracks.map(([name,id],i)=>{const panel=document.createElement('a');panel.className='flight-panel';panel.href='https://www.youtube.com/watch?v='+id;panel.target='_blank';panel.rel='noopener';panel.setAttribute('aria-label','Watch '+name+' on YouTube');panel.title='Watch full video on YouTube';panel.tabIndex=i===0?0:-1;panel.addEventListener('click',()=>pause(true));panel.style.transform=`translate3d(${i%2?260:-260}px,${i%3===1?65:0}px,${-i*2400}px)`;const poster=document.createElement('img');poster.src=id==='hesCXfu5R5Y'?'assets/special-court-cover.png':`assets/${id}-hd.jpg`;poster.alt='';panel.append(poster);camera.append(panel);return panel;});
+ const panels=tracks.map(([name,id],i)=>{const panel=document.createElement('a');panel.className='flight-panel';panel.href='https://www.youtube.com/watch?v='+id;panel.target='_blank';panel.rel='noopener';panel.setAttribute('aria-label','Watch '+name+' on YouTube');panel.title='Watch full video on YouTube';panel.tabIndex=i===0?0:-1;panel.addEventListener('click',()=>pause(true));panel.style.transform=`translate3d(${i%2?260:-260}px,${i%3===1?65:0}px,${-i*2400}px)`;const poster=document.createElement('img');poster.dataset.src=artwork(id);poster.alt='';panel.append(poster);camera.append(panel);return panel;});
  videos.forEach(v=>{v.preload='auto';v.playsInline=true;v.setAttribute('playsinline','');v.volume=.65;v.hidden=true;
   v.addEventListener('playing',()=>{if(v!==current()||!running||paused||mediaFailed)return;playing=true;needsGesture=false;mediaFailed=false;panels[index].classList.add('has-frame');setLoading(false);updateSound();$('media-status').textContent=muted?'Playing muted · next song follows':'Playing automatically · next song follows';});
   v.addEventListener('waiting',()=>{if(v!==current()||!running||paused||needsGesture||mediaFailed)return;playing=false;setLoading(true);$('media-status').textContent='Loading the preview…';});
@@ -21,6 +22,16 @@
  // Keep the audible element across tracks: some browsers grant playback per element.
  // The second element only preloads the next original HD clip; it never plays.
  function current(){return videos[0];}
+ // Spend bandwidth on the playing clip first. Only warm the next clip once
+ // the complete visible segment is buffered, and respect data-saver mode.
+ function warmNext(){
+  const v=current();if(!running||paused||mediaFailed||navigator.connection?.saveData)return;
+  for(let n=0;n<v.buffered.length;n++)if(v.buffered.start(n)<=v.currentTime&&v.buffered.end(n)>=Math.min(8,v.duration)){
+   prepare(videos[1],index+1);window.KweMedia?.loadWithin(panels[index+1]);break;
+  }
+ }
+ current().addEventListener('progress',warmNext);
+ current().addEventListener('canplaythrough',warmNext);
  function clearLoadingTimer(){clearTimeout(loadingTimer);loadingTimer=null;}
  function setLoading(value){
   screen.classList.toggle('loading',value);panels[index].classList.toggle('is-loading',value);panels[index].setAttribute('aria-busy',String(value));
@@ -38,21 +49,39 @@
   const label=mediaFailed?'Retry':paused?'Resume':needsGesture?(muted?'Play':'Play sound'):muted?'Unmute':'Mute';
   $('sound').textContent=label;$('sound').setAttribute('aria-label',label);
   $('sound').setAttribute('aria-pressed',String(muted));
+  const prompt=running&&!mediaFailed&&(muted||needsGesture),focused=document.activeElement;
+  $('sound').hidden=!running||prompt;
+  $('play-music').hidden=!prompt;
+  if(prompt&&focused===$('sound'))$('play-music').focus({preventScroll:true});
+  else if(!prompt&&running&&focused===$('play-music'))$('sound').focus({preventScroll:true});
  }
  function showMediaError(message='Preview unavailable. Tap Retry above or tap the video to watch on YouTube.'){panels[index].classList.remove('has-frame');playing=false;mediaFailed=true;needsGesture=false;setLoading(false);updateSound();$('media-status').textContent=message;}
- function prepare(v,i){if(i>=tracks.length)return;const src=`assets/previews/${tracks[i][1]}-hq.mp4`;if(v.dataset.source!==src){v.dataset.source=src;v.poster=tracks[i][1]==='hesCXfu5R5Y'?'assets/special-court-cover.png':`assets/${tracks[i][1]}-hd.jpg`;v.src=src;v.load();}}
- async function play(){const v=current(),request=++playRequest;v.muted=muted;try{await v.play();}catch(e){if(request!==playRequest||!running||paused||e.name==='AbortError')return;if(e.name!=='NotAllowedError'){showMediaError();return;}playing=false;needsGesture=true;mediaFailed=false;setLoading(false);updateSound();$('media-status').textContent=muted?'Tap Play above to continue muted.':'Tap Play sound above to start the music.';}}
+ function prepare(v,i){if(i>=tracks.length)return;const src=`assets/optimized/${tracks[i][1]}-hq.mp4`;if(v.dataset.source!==src){v.dataset.source=src;v.poster=artwork(tracks[i][1]);v.src=src;v.load();}}
+ async function play(){const v=current(),request=++playRequest;v.muted=muted;try{await v.play();}catch(e){if(request!==playRequest||!running||paused||e.name==='AbortError')return;if(e.name!=='NotAllowedError'){showMediaError();return;}playing=false;needsGesture=true;mediaFailed=false;setLoading(false);updateSound();$('media-status').textContent='Tap Play Music in the centre to start the music.';}}
  function choose(i){clearLoadingTimer();++playRequest;videos.forEach(v=>{v.pause();v.hidden=true;});panels.forEach(panel=>{panel.classList.remove('is-loading','has-frame');panel.setAttribute('aria-busy','false');});index=i;playing=false;needsGesture=false;mediaFailed=false;transition=0;paused=false;inspecting=false;document.body.classList.remove('inspecting');document.body.classList.add('previewing');setLoading(true);
-  panels.forEach((panel,n)=>{panel.tabIndex=n===i?0:-1;panel.inert=n!==i;});const [name,id]=tracks[i];prepare(current(),i);panels[i].append(current());current().currentTime=0;current().hidden=false;prepare(videos[1],i+1);if(panels[i+1])panels[i+1].append(videos[1]);
-  $('poster').src=id==='hesCXfu5R5Y'?'assets/special-court-cover.png':`assets/${id}-hd.jpg`;$('poster').alt=`${name} video artwork`;
+  panels.forEach((panel,n)=>{panel.tabIndex=n===i?0:-1;panel.inert=n!==i;});const [name,id]=tracks[i];prepare(current(),i);panels[i].append(current());current().currentTime=0;current().hidden=false;
+  window.KweMedia?.loadWithin(panels[i]);
+  if(panels[i+1])panels[i+1].append(videos[1]);
+  $('poster').src=artwork(id);$('poster').alt=`${name} video artwork`;
   $('track-title').textContent=name;$('screen-name').textContent=name;$('chapter').textContent='';$('counter').textContent=`${String(i+1).padStart(2,'0')} / ${tracks.length}`;$('transmission').textContent=String(i+1).padStart(2,'0');$('watch').href=`https://www.youtube.com/watch?v=${id}`;
   $('phase').textContent='IN FLIGHT';$('media-status').textContent='Loading the preview…';$('pause').textContent='Pause flight';$('pause').setAttribute('aria-pressed','false');updateSound();play();
  }
  function launch(){running=true;$('sound').hidden=false;$('journey').hidden=false;$('arrival').hidden=true;choose(0);}
- function finish(){running=false;clearLoadingTimer();++playRequest;videos.forEach(v=>v.pause());$('sound').hidden=true;$('journey').hidden=true;$('arrival').hidden=false;$('replay').focus({preventScroll:true});}
+ function finish(){running=false;clearLoadingTimer();++playRequest;videos.forEach(v=>v.pause());updateSound();$('journey').hidden=true;$('arrival').hidden=false;window.KweMedia?.loadWithin($('arrival'));$('replay').focus({preventScroll:true});}
  function next(){if(index+1===tracks.length)finish();else choose(index+1);}
  function pause(value){paused=value;updateSound();$('pause').textContent=value?'Resume flight':'Pause flight';$('pause').setAttribute('aria-pressed',String(value));$('phase').textContent=value?'FLIGHT PAUSED':'IN FLIGHT';$('media-status').textContent=value?'Music and flight paused.':'Playing automatically · next song follows';if(value){setLoading(false);current().pause();}else{setLoading(true);inspecting=false;document.body.classList.remove('inspecting');play();}}
- $('pause').addEventListener('click',()=>pause(inspecting?false:!paused));$('next').addEventListener('click',next);$('replay').addEventListener('click',()=>{launch();$('sound').focus({preventScroll:true});});
+ $('pause').addEventListener('click',()=>pause(inspecting?false:!paused));$('next').addEventListener('click',next);$('replay').addEventListener('click',()=>{launch();($('play-music').hidden?$('sound'):$('play-music')).focus({preventScroll:true});});
+ $('play-music').addEventListener('click',()=>{
+  if(!running||mediaFailed)return;
+  muted=false;paused=false;needsGesture=false;inspecting=false;
+  document.body.classList.remove('inspecting');
+  $('pause').textContent='Pause flight';$('pause').setAttribute('aria-pressed','false');$('phase').textContent='IN FLIGHT';
+  current().muted=false;
+  if(current().paused||current().readyState<3)setLoading(true);
+  updateSound();$('media-status').textContent='Playing automatically · next song follows';
+  // Preserve the browser's tap/keyboard permission to enable audible playback.
+  play();
+ });
  $('sound').addEventListener('click',()=>{
   if(paused&&!mediaFailed&&!needsGesture){pause(false);return;}
   if(needsGesture||mediaFailed){const retrying=mediaFailed;paused=false;needsGesture=false;mediaFailed=false;setLoading(true);if(retrying||current().error)current().load();}
