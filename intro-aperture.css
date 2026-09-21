@@ -29,3 +29,6 @@ html.aperture-handoff .wordmark-stage h1{visibility:hidden}
 .kwe-aperture-controls button{min-height:44px;margin:4px 8px;padding:8px 14px;border:1px solid #777;background:#050505;color:#fff;font:inherit;cursor:pointer}
 .kwe-aperture-controls button:focus-visible{outline:2px solid #ff3038;outline-offset:4px}
 .kwe-aperture-controls[hidden],.kwe-aperture-controls button[hidden]{display:none}
+
+/* Fade the footage to black inside the existing circular closing mask. */
+.kwe-aperture-blackout{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none}

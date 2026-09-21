@@ -1,4 +1,4 @@
-/* Original aperture opening; only the first video reveal gains a brief fade. */
+/* Preserve the aperture motion, with a soft film reveal and black closing circle. */
 (() => {
   'use strict';
  const root=document.documentElement;
@@ -33,6 +33,9 @@
     inertTargets.forEach(([el])=>el.inert=true);
     const film = layer.querySelector('.kwe-aperture-film');
     const video = layer.querySelector('video');
+    const blackout = document.createElement('div');
+    blackout.className = 'kwe-aperture-blackout';
+    film.append(blackout);
     const fallbackUrl = 'assets/optimized/intro-h264.mp4';
     let clipUrl = video.canPlayType('video/mp4; codecs="av01.0.08M.08"') ? 'assets/optimized/intro-av1.mp4' : fallbackUrl;
     // Fetch the whole file ourselves: preload/canplaythrough are only hints.
@@ -56,7 +59,7 @@
     let started = false;
     let done = false;
     let downloadController = new AbortController();
-    let clipObjectUrl, pendingPlay, playAttempt = 0;
+    let clipObjectUrl, pendingPlay, playAttempt = 0, nativePlayback = false;
     const fontReady = Promise.race([document.fonts.ready,new Promise(resolve=>setTimeout(resolve,1200))]);
     let recoveryTimer, skipTimer, frameRequest, fontsReady = false, frameReady = false, buffering = true;
     const heading=document.querySelector('.wordmark-stage h1');
@@ -117,7 +120,7 @@
       animate(line, [{transform:'scaleX(0)'},{transform:'scaleX(1)',offset:.7},{transform:'scaleX(1)',opacity:0}], 850);
       animate(film, [{clipPath:'inset(49.85% 0)'},{clipPath:'inset(24% 0)'}], 1250, 250);
       // Hide the initial hairline of video, then gently reveal it as the original aperture expands.
-      animate(film, [{opacity:0},{opacity:1}], 350, 250, 'ease-out');
+      animate(film, [{opacity:0},{opacity:1}], 1100, 250, 'cubic-bezier(.4,0,.6,1)');
       animate(title, [{opacity:1,transform:'scale(.92)'},{opacity:1,transform:'scale(1)'}], 1150, 300);
       // Extend the reveal above/below the tight line box so tall glyphs fill completely.
       animate(fill, [{clipPath:'inset(-.5em 100% -.5em -.12em)'},{clipPath:'inset(-.5em -.12em -.5em -.12em)'}], 1300, 650, 'cubic-bezier(.4,0,.6,1)');
@@ -141,6 +144,7 @@
           animate(layer.querySelector('.bottom'),[{transform:'translateY(0)'},{transform:'translateY(100%)'}],1450,0,'cubic-bezier(.65,0,.2,1)');
           const W=innerWidth,H=innerHeight,radius=Math.min(W,H)*.18;
           animate(film,[{clipPath:'inset(24% 0 round 0px)'},{clipPath:`inset(${H/2-radius}px ${W/2-radius}px round ${radius}px)`,offset:.62},{clipPath:'inset(50% 50% round 100px)'}],1800,0,'cubic-bezier(.55,0,.2,1)');
+          animate(blackout,[{opacity:0},{opacity:1,offset:.62},{opacity:1}],1800,0,'cubic-bezier(.55,0,.2,1)');
           afterPlayback(1860,finish);
         }catch{finish();}
       });
@@ -191,7 +195,10 @@
       waiting();retry.hidden=true;status.textContent='Loading the opening…';
       controls.hidden=true;
       pendingPlay=(async()=>{
-        if(!clipObjectUrl){
+        if(nativePlayback){
+          const url=new URL(clipUrl,location.href).href;
+          if(video.src!==url)video.src=url;
+        }else if(!clipObjectUrl){
           try {
             const response=await fetch(clipUrl,{signal:downloadController.signal,priority:'high'});
             if(!response.ok)throw new Error(`Opening download failed: ${response.status}`);
@@ -218,6 +225,9 @@
     video.addEventListener('error',()=>{
       if(done)return;
       if(clipUrl!==fallbackUrl){clipUrl=fallbackUrl;pendingPlay=null;play(true);return;}
+      // Some WebKit media backends accept the MP4 URL but cannot decode a Blob.
+      // Try native loading once, then leave Retry/Skip available on real failures.
+      if(!nativePlayback && clipObjectUrl){nativePlayback=true;pendingPlay=null;play(true);return;}
       waiting();recovery('The opening could not load. Try again.');
     });
     // Keep the reveal alive if a short clip reaches its end during loading.

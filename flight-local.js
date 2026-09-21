@@ -7,6 +7,7 @@
  let reduced=query.matches,index=0,running=false,paused=false,inspecting=false,muted=false,transition=0,last=0,playing=false;
  let needsGesture=false,mediaFailed=false,playRequest=0,depthSupported=true;
  let loadingTimer;
+ let departure=0,segmentComplete=false,nextFailed=false,nextLoadingTimer;
  const screen=$('screen'),videos=[document.createElement('video'),document.createElement('video')];
  const wrapper=$('player-wrap');wrapper.replaceChildren(...videos);wrapper.hidden=false;
  const camera=document.createElement('div');camera.className='flight-camera';wrapper.replaceChildren(camera);
@@ -15,13 +16,40 @@
   v.addEventListener('playing',()=>{if(v!==current()||!running||paused||mediaFailed)return;playing=true;needsGesture=false;mediaFailed=false;panels[index].classList.add('has-frame');setLoading(false);updateSound();$('media-status').textContent=muted?'Playing muted · next song follows':'Playing automatically · next song follows';});
   v.addEventListener('waiting',()=>{if(v!==current()||!running||paused||needsGesture||mediaFailed)return;playing=false;setLoading(true);$('media-status').textContent='Loading the preview…';});
   v.addEventListener('pause',()=>{if(v===current())playing=false;});
-  v.addEventListener('timeupdate',()=>{if(v===current()&&running&&!paused&&!inspecting&&v.currentTime>=8)next();});
-  v.addEventListener('ended',()=>{if(v!==current()||!running||paused||mediaFailed)return;if(inspecting){v.currentTime=0;play();}else next();});
+  v.addEventListener('timeupdate',()=>{if(v===current()&&running&&!paused&&!inspecting&&v.currentTime>=8)completeSegment();});
+  v.addEventListener('ended',()=>{if(v!==current()||!running||paused||mediaFailed)return;if(inspecting){v.currentTime=0;play();}else completeSegment();});
   v.addEventListener('error',()=>{if(v!==current()||!running)return;showMediaError();});
  });
  // Keep the audible element across tracks: some browsers grant playback per element.
  // The second element only preloads the next original HD clip; it never plays.
  function current(){return videos[0];}
+ function loadPoster(i,retry=false){
+  const panel=panels[i];if(!panel)return;
+  const img=panel.querySelector('img');
+  if(!retry&&img.getAttribute('src'))return;
+  panel.classList.remove('poster-ready');
+  img.onload=()=>{const ready=()=>{if(img.naturalWidth)panel.classList.add('poster-ready');};if(img.decode)img.decode().then(ready,ready);else ready();};
+  img.onerror=()=>panel.classList.remove('poster-ready');
+  delete img.dataset.src;img.src=artwork(tracks[i][1]);
+ }
+ function nextReady(){return !!panels[index+1]?.classList.contains('poster-ready')&&videos[1].dataset.source===`assets/optimized/${tracks[index+1][1]}-hq.mp4`&&videos[1].readyState>=3;}
+ function clearNextTimer(){clearTimeout(nextLoadingTimer);nextLoadingTimer=null;}
+ function waitForNext(){
+  if(nextReady()){clearNextTimer();return;}
+  if(nextFailed||nextLoadingTimer!=null)return;
+  $('media-status').textContent='Loading the next preview…';
+  const track=index;
+  nextLoadingTimer=setTimeout(()=>{
+   nextLoadingTimer=null;if(!running||paused||index!==track||nextReady())return;
+   nextFailed=true;updateSound();
+   $('media-status').textContent='The next preview is taking longer to load. Tap Retry above.';
+  },15000);
+ }
+ function completeSegment(){
+  if(segmentComplete)return;
+  if(index===tracks.length-1){finish();return;}
+  segmentComplete=true;current().pause();
+ }
  // Spend bandwidth on the playing clip first. Only warm the next clip once
  // the complete visible segment is buffered, and respect data-saver mode.
  function warmNext(){
@@ -46,10 +74,10 @@
   },15000);
  }
  function updateSound(){
-  const label=mediaFailed?'Retry':paused?'Resume':needsGesture?(muted?'Play':'Play sound'):muted?'Unmute':'Mute';
+  const label=mediaFailed||nextFailed?'Retry':paused?'Resume':needsGesture?(muted?'Play':'Play sound'):muted?'Unmute':'Mute';
   $('sound').textContent=label;$('sound').setAttribute('aria-label',label);
   $('sound').setAttribute('aria-pressed',String(muted));
-  const prompt=running&&!mediaFailed&&(muted||needsGesture),focused=document.activeElement;
+  const prompt=running&&!mediaFailed&&!nextFailed&&(muted||needsGesture),focused=document.activeElement;
   $('sound').hidden=!running||prompt;
   $('play-music').hidden=!prompt;
   if(prompt&&focused===$('sound'))$('play-music').focus({preventScroll:true});
@@ -58,18 +86,18 @@
  function showMediaError(message='Preview unavailable. Tap Retry above or tap the video to watch on YouTube.'){panels[index].classList.remove('has-frame');playing=false;mediaFailed=true;needsGesture=false;setLoading(false);updateSound();$('media-status').textContent=message;}
  function prepare(v,i){if(i>=tracks.length)return;const src=`assets/optimized/${tracks[i][1]}-hq.mp4`;if(v.dataset.source!==src){v.dataset.source=src;v.poster=artwork(tracks[i][1]);v.src=src;v.load();}}
  async function play(){const v=current(),request=++playRequest;v.muted=muted;try{await v.play();}catch(e){if(request!==playRequest||!running||paused||e.name==='AbortError')return;if(e.name!=='NotAllowedError'){showMediaError();return;}playing=false;needsGesture=true;mediaFailed=false;setLoading(false);updateSound();$('media-status').textContent='Tap Play Music in the centre to start the music.';}}
- function choose(i){clearLoadingTimer();++playRequest;videos.forEach(v=>{v.pause();v.hidden=true;});panels.forEach(panel=>{panel.classList.remove('is-loading','has-frame');panel.setAttribute('aria-busy','false');});index=i;playing=false;needsGesture=false;mediaFailed=false;transition=0;paused=false;inspecting=false;document.body.classList.remove('inspecting');document.body.classList.add('previewing');setLoading(true);
+ function choose(i){clearLoadingTimer();clearNextTimer();departure=0;segmentComplete=false;nextFailed=false;++playRequest;videos.forEach(v=>{v.pause();v.hidden=true;});panels.forEach(panel=>{panel.classList.remove('is-loading','has-frame');panel.setAttribute('aria-busy','false');});index=i;playing=false;needsGesture=false;mediaFailed=false;transition=0;paused=false;inspecting=false;document.body.classList.remove('inspecting');document.body.classList.add('previewing');setLoading(true);
   panels.forEach((panel,n)=>{panel.tabIndex=n===i?0:-1;panel.inert=n!==i;});const [name,id]=tracks[i];prepare(current(),i);panels[i].append(current());current().currentTime=0;current().hidden=false;
-  window.KweMedia?.loadWithin(panels[i]);
+  loadPoster(i);loadPoster(i+1);
   if(panels[i+1])panels[i+1].append(videos[1]);
   $('poster').src=artwork(id);$('poster').alt=`${name} video artwork`;
   $('track-title').textContent=name;$('screen-name').textContent=name;$('chapter').textContent='';$('counter').textContent=`${String(i+1).padStart(2,'0')} / ${tracks.length}`;$('transmission').textContent=String(i+1).padStart(2,'0');$('watch').href=`https://www.youtube.com/watch?v=${id}`;
   $('phase').textContent='IN FLIGHT';$('media-status').textContent='Loading the preview…';$('pause').textContent='Pause flight';$('pause').setAttribute('aria-pressed','false');updateSound();play();
  }
  function launch(){running=true;$('sound').hidden=false;$('journey').hidden=false;$('arrival').hidden=true;choose(0);}
- function finish(){running=false;clearLoadingTimer();++playRequest;videos.forEach(v=>v.pause());updateSound();$('journey').hidden=true;$('arrival').hidden=false;window.KweMedia?.loadWithin($('arrival'));$('replay').focus({preventScroll:true});}
+ function finish(){running=false;clearLoadingTimer();clearNextTimer();++playRequest;videos.forEach(v=>v.pause());updateSound();$('journey').hidden=true;$('arrival').hidden=false;window.KweMedia?.loadWithin($('arrival'));$('replay').focus({preventScroll:true});}
  function next(){if(index+1===tracks.length)finish();else choose(index+1);}
- function pause(value){paused=value;updateSound();$('pause').textContent=value?'Resume flight':'Pause flight';$('pause').setAttribute('aria-pressed',String(value));$('phase').textContent=value?'FLIGHT PAUSED':'IN FLIGHT';$('media-status').textContent=value?'Music and flight paused.':'Playing automatically · next song follows';if(value){setLoading(false);current().pause();}else{setLoading(true);inspecting=false;document.body.classList.remove('inspecting');play();}}
+ function pause(value){paused=value;updateSound();$('pause').textContent=value?'Resume flight':'Pause flight';$('pause').setAttribute('aria-pressed',String(value));$('phase').textContent=value?'FLIGHT PAUSED':'IN FLIGHT';$('media-status').textContent=value?'Music and flight paused.':'Playing automatically · next song follows';if(value){setLoading(false);clearNextTimer();current().pause();}else{inspecting=false;document.body.classList.remove('inspecting');if(!segmentComplete){setLoading(true);play();}}}
  $('pause').addEventListener('click',()=>pause(inspecting?false:!paused));$('next').addEventListener('click',next);$('replay').addEventListener('click',()=>{launch();($('play-music').hidden?$('sound'):$('play-music')).focus({preventScroll:true});});
  $('play-music').addEventListener('click',()=>{
   if(!running||mediaFailed)return;
@@ -77,19 +105,20 @@
   document.body.classList.remove('inspecting');
   $('pause').textContent='Pause flight';$('pause').setAttribute('aria-pressed','false');$('phase').textContent='IN FLIGHT';
   current().muted=false;
-  if(current().paused||current().readyState<3)setLoading(true);
+  if(!segmentComplete&&(current().paused||current().readyState<3))setLoading(true);
   updateSound();$('media-status').textContent='Playing automatically · next song follows';
   // Preserve the browser's tap/keyboard permission to enable audible playback.
-  play();
+  if(!segmentComplete)play();
  });
  $('sound').addEventListener('click',()=>{
+  if(nextFailed){nextFailed=false;clearNextTimer();loadPoster(index+1,true);videos[1].load();updateSound();waitForNext();return;}
   if(paused&&!mediaFailed&&!needsGesture){pause(false);return;}
   if(needsGesture||mediaFailed){const retrying=mediaFailed;paused=false;needsGesture=false;mediaFailed=false;setLoading(true);if(retrying||current().error)current().load();}
   else muted=!muted;
   current().muted=muted;updateSound();
   if(playing&&!paused)$('media-status').textContent=muted?'Playing muted · next song follows':'Playing automatically · next song follows';
   // Call play directly within the tap, before any asynchronous work.
-  if(!paused)play();
+  if(!paused&&!segmentComplete)play();
  });
  $('inspect').addEventListener('click',()=>{inspecting=true;document.body.classList.add('inspecting');$('pause').textContent='Continue flight';$('media-status').textContent='Stay with this clip · Continue flight when ready';});
  $('watch').addEventListener('click',()=>pause(true));
@@ -102,7 +131,16 @@
  const progress=$('progress');
  function frame(now){const dt=Math.min((now-last)/1000,.05)||0;last=now;
   if(running){const v=current(),t=v.currentTime,d=Math.min(Number.isFinite(v.duration)?v.duration:8,8);if(playing&&!paused)transition+=dt;
-   const enter=Math.min(1,transition/1.6),leave=inspecting||index===tracks.length-1?0:Math.max(0,(t-(d-3.2))/3.2),ease=leave*leave*(3-2*leave),nextIndex=Math.min(index+1,tracks.length-1);
+   // Keep the last sharp frame until the destination can actually play. A
+   // separate clock preserves the original arc even when loading finishes late.
+   if(!paused&&!inspecting&&!mediaFailed&&(playing||segmentComplete)&&index<tracks.length-1&&t>=d-3.2){
+    if(!nextFailed)prepare(videos[1],index+1);
+    if(nextReady()&&!nextFailed){clearNextTimer();departure=Math.min(1,departure+dt/3.2);}
+    else waitForNext();
+   }
+   if(!paused&&!inspecting&&t>=d)completeSegment();
+   if(segmentComplete&&departure>=1&&!paused&&!nextFailed){next();requestAnimationFrame(frame);return;}
+   const enter=Math.min(1,transition/1.6),leave=departure,ease=leave*leave*(3-2*leave),nextIndex=Math.min(index+1,tracks.length-1);
    // Bend beyond the screen edge before crossing its depth, then settle at the next screen.
    const arc=Math.pow(Math.sin(Math.PI*ease),2),clearance=screen.clientWidth*1.15+520,side=index%2?1:-1;
    const x=(index%2?260:-260)*(1-ease)+(nextIndex%2?260:-260)*ease+side*arc*clearance,y=(index%3===1?65:0)*(1-ease)+(nextIndex%3===1?65:0)*ease-arc*screen.clientHeight*.15,z=(index+ease)*2400-(index===0?1100*Math.pow(1-enter,3):0);

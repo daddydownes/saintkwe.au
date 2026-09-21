@@ -55,10 +55,10 @@ body.previewing #inspect span{background:#000b;margin:4px;padding:8px 12px}
 .flight-panel{overflow:hidden}
 .flight-panel video{opacity:0}
 .flight-panel.has-frame video{opacity:1}
-.flight-panel.is-loading img,.flight-panel.is-loading.has-frame video{animation:kwe-buffer-breathe 2.2s ease-in-out infinite}
+/* Keep the last frame and artwork sharp while media buffers. */
 .flight-panel.is-loading::before{content:'LOADING';position:absolute;z-index:3;left:50%;top:50%;transform:translate(-50%,-50%);padding:10px 16px;background:#0008;color:#fff;font:500 10px/1.4 Inter,Arial,sans-serif;letter-spacing:.2em;pointer-events:none}
 .screen.loading .screen-media:after{display:none}
-@keyframes kwe-buffer-breathe{0%,100%{filter:blur(0)}50%{filter:blur(5px)}}
+
 @media(prefers-reduced-motion:reduce){.flight-panel.is-loading img,.flight-panel.is-loading.has-frame video{animation:none}}
 
 /* Prominent audio invitation, with the corner Mute control while playing. */
@@ -68,3 +68,6 @@ body.previewing #inspect span{background:#000b;margin:4px;padding:8px 12px}
 .play-music:focus-visible,.experience-actions .exit:focus-visible{outline:3px solid #fff;outline-offset:5px}
 .experience-actions .exit{background:#ff3038;color:#080808;font-weight:600}
 @media(max-width:600px){.play-music{min-height:68px;padding:18px 28px;font-size:20px}}
+
+.flight-panel[inert]:not(.poster-ready){visibility:hidden}
+.flight-panel img{opacity:0}.flight-panel.poster-ready img{opacity:1}

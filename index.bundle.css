@@ -477,3 +477,6 @@ body[data-front="3"] .front-visual img{object-position:50% 42%}@media(max-width:
  @keyframes catalog-glow{0%,100%{text-shadow:0 0 12px #ff303825,0 0 28px #ff303810}50%{text-shadow:0 0 18px #ff303866,0 0 44px #ff303830}}
 }
 @media(max-width:600px){#archive{padding-bottom:16px}#contact{padding-top:20px}#contact h2{margin-bottom:40px}.catalog-footer{padding-bottom:48px}}
+
+/* Fade the footage to black inside the existing circular closing mask. */
+.kwe-aperture-blackout{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none}
