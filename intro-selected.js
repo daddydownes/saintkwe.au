@@ -119,6 +119,13 @@
       root.classList.add('aperture-handoff');
       animate(line, [{transform:'scaleX(0)'},{transform:'scaleX(1)',offset:.7},{transform:'scaleX(1)',opacity:0}], 850);
       animate(film, [{clipPath:'inset(49.85% 0)'},{clipPath:'inset(24% 0)'}], 1250, 250);
+      // Feather the moving edge itself. Opacity alone still exposes a straight
+      // cut through the footage; this soft mask grows with the original aperture.
+      animate(film, [
+        {maskSize:'100% .3%',offset:0,easing:'cubic-bezier(.22,1,.36,1)'},
+        {maskSize:'100% 52%',offset:1250/1850,easing:'ease-in-out'},
+        {maskSize:'100% 100%',offset:1}
+      ], 1850, 250, 'linear');
       // Hide the initial hairline of video, then gently reveal it as the original aperture expands.
       animate(film, [{opacity:0},{opacity:1}], 1100, 250, 'cubic-bezier(.4,0,.6,1)');
       animate(title, [{opacity:1,transform:'scale(.92)'},{opacity:1,transform:'scale(1)'}], 1150, 300);
