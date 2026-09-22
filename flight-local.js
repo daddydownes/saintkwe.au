@@ -47,7 +47,7 @@
   img.onerror=()=>panel.classList.remove('poster-ready');
   delete img.dataset.src;img.src=artwork(tracks[i][1]);
  }
- function nextReady(){return videos[1].dataset.source===`assets/optimized/${tracks[index+1]?.[1]}-hq.mp4`&&videos[1].readyState>=3;}
+ function nextReady(){return !!panels[index+1]?.classList.contains('poster-ready')&&videos[1].dataset.source===`assets/optimized/${tracks[index+1]?.[1]}-hq.mp4`&&videos[1].readyState>=3;}
  function clearNextTimer(){clearTimeout(nextLoadingTimer);nextLoadingTimer=null;}
  function waitForNext(){
   if(nextReady()||nextFallback){clearNextTimer();return;}
