@@ -38,7 +38,8 @@
     film.append(blackout);
     const fallbackUrl = 'assets/optimized/intro-h264.mp4';
     let clipUrl = video.canPlayType('video/mp4; codecs="av01.0.08M.08"') ? 'assets/optimized/intro-av1.mp4' : fallbackUrl;
-    // Fetch the whole file ourselves: preload/canplaythrough are only hints.
+    // Let the browser stream/buffer the real file progressively instead of
+    // making the complete MP4 download a prerequisite for playback.
     video.querySelector('source').remove();
     video.preload = 'auto';
     video.muted = true;
@@ -61,10 +62,9 @@
     const animations = [];
     let started = false;
     let done = false;
-    let downloadController = new AbortController();
-    let clipObjectUrl, pendingPlay, playAttempt = 0, nativePlayback = false;
+    let pendingPlay, playAttempt = 0;
     const fontReady = Promise.race([document.fonts.ready,new Promise(resolve=>setTimeout(resolve,1200))]);
-    let recoveryTimer, skipTimer, frameRequest, fontsReady = false, frameReady = false, buffering = true;
+    let recoveryTimer, skipTimer, frameRequest, fontsReady = false, frameReady = false, buffering = true, escapeAvailable = false;
     const heading=document.querySelector('.wordmark-stage h1');
     const previousOverflow = root.style.overflow;
     root.style.overflow = 'hidden';
@@ -85,10 +85,8 @@
       document.removeEventListener('visibilitychange', visibilityChanged);
       animations.forEach(animation => animation.cancel());
       video.pause();
-      downloadController.abort();
       video.removeAttribute('src');
       video.load();
-      if (clipObjectUrl) URL.revokeObjectURL(clipObjectUrl);
       settle();
       root.style.overflow = previousOverflow;
       const restoreFocus = layer.contains(document.activeElement);
@@ -154,6 +152,7 @@
     };
     function recovery(message) {
       if(done)return;
+      escapeAvailable=true;
       controls.hidden=false;
       status.textContent=message;
       retry.hidden=false;
@@ -165,7 +164,12 @@
       film.classList.add('is-loading');
       animations.forEach(animation=>{if(animation.playState==='running')animation.pause();});
       clearTimeout(recoveryTimer);
-      recoveryTimer=setTimeout(()=>recovery('Still loading. You can retry the opening.'),15000);
+      if(escapeAvailable){
+        controls.hidden=false;
+        retry.hidden=false;
+        skip.hidden=false;
+        status.textContent='Still loading. You can retry or skip the opening.';
+      }
     }
     function decoded() {
       frameRequest=null;
@@ -186,39 +190,20 @@
     function play(restart = false) {
       if(done || document.hidden || (pendingPlay && !restart))return;
       const attempt=++playAttempt;
-      if(restart){
-        downloadController.abort();downloadController=new AbortController();
-        // A decoded-media failure poisons the Blob, so Retry needs fresh bytes.
-        // Autoplay rejection still reuses the complete, valid download.
-        if(clipObjectUrl && video.error){
-          video.pause();video.removeAttribute('src');video.load();
-          URL.revokeObjectURL(clipObjectUrl);clipObjectUrl=null;frameReady=false;
-        }
-      }
       waiting();retry.hidden=true;status.textContent='Loading the opening…';
       controls.hidden=true;
       pendingPlay=(async()=>{
-        if(nativePlayback){
-          const url=new URL(clipUrl,location.href).href;
-          if(video.src!==url)video.src=url;
-        }else if(!clipObjectUrl){
-          try {
-            const response=await fetch(clipUrl,{signal:downloadController.signal,priority:'high'});
-            if(!response.ok)throw new Error(`Opening download failed: ${response.status}`);
-            const clip=await response.blob();
-            if(done || attempt!==playAttempt)return;
-            clipObjectUrl=URL.createObjectURL(clip);
-            video.src=clipObjectUrl;
-          } catch {
-            if(!done && attempt===playAttempt){clearTimeout(recoveryTimer);recovery('The opening could not load. Try again.');}
-            return;
-          }
+        const requestedUrl=new URL(clipUrl,location.href).href;
+        if(video.src!==requestedUrl || (restart && video.error)){
+          video.pause();
+          frameReady=false;
+          video.src=clipUrl;
+          video.load();
         }
         await fontReady;
         fontsReady=true;
         if(done || document.hidden || attempt!==playAttempt)return;
-        if(video.error)video.load();
-        if(!started)video.currentTime=0;
+        if(!started && video.currentTime>0)video.currentTime=0;
         try { await video.play(); }
         catch { if(!done && attempt===playAttempt)recovery('Tap to play the opening.'); }
       })().finally(()=>{if(attempt===playAttempt)pendingPlay=null;});
@@ -227,23 +212,28 @@
     video.addEventListener('waiting',waiting);
     video.addEventListener('error',()=>{
       if(done)return;
-      if(clipUrl!==fallbackUrl){clipUrl=fallbackUrl;pendingPlay=null;play(true);return;}
-      // Some WebKit media backends accept the MP4 URL but cannot decode a Blob.
-      // Try native loading once, then leave Retry/Skip available on real failures.
-      if(!nativePlayback && clipObjectUrl){nativePlayback=true;pendingPlay=null;play(true);return;}
+      if(clipUrl!==fallbackUrl){
+        clipUrl=fallbackUrl;pendingPlay=null;frameReady=false;
+        video.pause();video.src=clipUrl;video.load();play(true);return;
+      }
       waiting();recovery('The opening could not load. Try again.');
     });
     // Keep the reveal alive if a short clip reaches its end during loading.
     video.loop=true;
     retry.addEventListener('click',()=>play(true));
     skip.addEventListener('click',finish);
-    // A normal connection sees only the outline and footage. Keep an escape
-    // available after 15 seconds, even if repeated media events reset recovery.
+    // A normal connection sees only the outline and footage. After six seconds
+    // the escape remains eligible for every later stall; healthy playback is
+    // never terminated just because the deadline elapsed.
     skipTimer=setTimeout(()=>{
       if(done)return;
+      escapeAvailable=true;
       skip.hidden=false;
-      if(buffering || !started){controls.hidden=false;status.textContent='The opening is taking longer to load.';}
-    },15000);
+      if(buffering || !started){
+        controls.hidden=false;retry.hidden=false;
+        status.textContent='The opening is taking longer to load.';
+      }
+    },6000);
     // Mobile browser address bars change height without changing the layout width.
     function resized(){if(started && Math.abs(innerWidth-initialWidth)>2)finish();}
     function visibilityChanged(){if(document.hidden){waiting();video.pause();}else play();}
