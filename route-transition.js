@@ -12,6 +12,7 @@
    if(!previousBodyInert&&previousFocus?.isConnected&&document.activeElement===lockedBody)previousFocus.focus?.({preventScroll:true});
    lockedBody=null;previousFocus=null;
   }
+  window.KweFlight?.resume?.();
  }
  function mark(direction){root.dataset.kweDirection=direction;root.classList.add('kwe-route');}
  // Set the arrival cover before the new document paints. Never cover a direct visit.
@@ -37,7 +38,10 @@
   lockedBody=document.body;previousBodyInert=lockedBody.inert;previousFocus=document.activeElement;lockedBody.inert=true;
   const direction=target.pathname.endsWith('/flight.html')?'enter':'exit';
   mark(direction);root.classList.add('kwe-route-cover');
-  if(direction==='exit')document.querySelectorAll('video,audio').forEach(media=>media.pause());
+  if(direction==='exit'){
+   window.KweFlight?.suspend?.();
+   document.querySelectorAll('video,audio').forEach(media=>media.pause());
+  }
   pendingHref=target.href;
   departure=setTimeout(()=>{
    departure=null;pendingHref=null;
