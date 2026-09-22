@@ -190,8 +190,15 @@
     function play(restart = false) {
       if(done || document.hidden || (pendingPlay && !restart))return;
       const attempt=++playAttempt;
-      waiting();retry.hidden=true;status.textContent='Loading the opening…';
-      controls.hidden=true;
+      waiting();status.textContent='Loading the opening…';
+      if(escapeAvailable){
+        controls.hidden=false;
+        retry.hidden=false;
+        skip.hidden=false;
+      }else{
+        retry.hidden=true;
+        controls.hidden=true;
+      }
       pendingPlay=(async()=>{
         const requestedUrl=new URL(clipUrl,location.href).href;
         if(video.src!==requestedUrl || (restart && video.error)){
