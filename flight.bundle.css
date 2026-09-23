@@ -134,3 +134,9 @@ html.kwe-route:not(.kwe-route-cover)::before,html.kwe-route:not(.kwe-route-cover
 @media(max-height:650px){.arrival{gap:10px;padding-top:72px}.arrival h2{font-size:clamp(48px,8vh,70px)}.arrival>img{width:clamp(86px,18vh,120px);height:clamp(86px,18vh,120px)}.destinations a{min-height:72px;padding:2px}.arrival-actions button,.arrival-actions a{min-height:46px}}
 @media(max-height:480px){.arrival{justify-content:flex-start}}
 @media(prefers-reduced-motion:reduce){.destinations a,.arrival-actions button,.arrival-actions a{transition:none}.destinations a:hover,.arrival-actions button:hover,.arrival-actions a:hover{transform:none}}
+
+/* Let the track name carry the flight screen; status text appears only when needed. */
+.track-caption h2{font-size:clamp(48px,6vw,80px);line-height:.92;text-wrap:balance}
+#media-status:empty{display:none}
+@media(max-width:600px){.track-caption h2{font-size:clamp(46px,13vw,64px)}}
+@media(max-height:650px){.track-caption h2{font-size:clamp(38px,7vh,52px)}}

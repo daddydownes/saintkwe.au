@@ -13,7 +13,7 @@
  const camera=document.createElement('div');camera.className='flight-camera';wrapper.replaceChildren(camera);
  const panels=tracks.map(([name,id],i)=>{const panel=document.createElement('a');panel.className='flight-panel';panel.href='https://www.youtube.com/watch?v='+id;panel.target='_blank';panel.rel='noopener';panel.setAttribute('aria-label','Watch '+name+' on YouTube');panel.title='Watch full video on YouTube';panel.tabIndex=i===0?0:-1;panel.addEventListener('click',()=>pause(true));panel.style.transform=`translate3d(${i%2?260:-260}px,${i%3===1?65:0}px,${-i*2400}px)`;const poster=document.createElement('img');poster.dataset.src=artwork(id);poster.alt='';panel.append(poster);camera.append(panel);return panel;});
  videos.forEach(v=>{v.preload='auto';v.playsInline=true;v.setAttribute('playsinline','');v.volume=.65;v.hidden=true;
-  v.addEventListener('playing',()=>{if(v!==current()||!running||paused||mediaFailed)return;playing=true;needsGesture=false;mediaFailed=false;panels[index].classList.add('has-frame');setLoading(false);updateSound();$('media-status').textContent=muted?'Playing muted · next song follows':'Playing automatically · next song follows';});
+  v.addEventListener('playing',()=>{if(v!==current()||!running||paused||mediaFailed)return;playing=true;needsGesture=false;mediaFailed=false;panels[index].classList.add('has-frame');setLoading(false);updateSound();$('media-status').textContent='';});
   v.addEventListener('waiting',()=>{if(v!==current()||!running||paused||needsGesture||mediaFailed)return;playing=false;setLoading(true);$('media-status').textContent='Loading the preview…';});
   v.addEventListener('pause',()=>{if(v===current())playing=false;});
   v.addEventListener('timeupdate',()=>{if(v===current()&&running&&!paused&&!inspecting&&v.currentTime>=8)completeSegment();});
@@ -97,7 +97,7 @@
  function launch(){running=true;$('sound').hidden=false;$('journey').hidden=false;$('arrival').hidden=true;choose(0);}
  function finish(){running=false;clearLoadingTimer();clearNextTimer();++playRequest;videos.forEach(v=>v.pause());updateSound();$('journey').hidden=true;$('arrival').hidden=false;window.KweMedia?.loadWithin($('arrival'));$('replay').focus({preventScroll:true});}
  function next(){if(index+1===tracks.length)finish();else choose(index+1);}
- function pause(value){paused=value;updateSound();$('pause').textContent=value?'Resume flight':'Pause flight';$('pause').setAttribute('aria-pressed',String(value));$('phase').textContent=value?'FLIGHT PAUSED':'IN FLIGHT';$('media-status').textContent=value?'Music and flight paused.':'Playing automatically · next song follows';if(value){setLoading(false);clearNextTimer();current().pause();}else{inspecting=false;document.body.classList.remove('inspecting');if(!segmentComplete){setLoading(true);play();}}}
+ function pause(value){paused=value;updateSound();$('pause').textContent=value?'Resume flight':'Pause flight';$('pause').setAttribute('aria-pressed',String(value));$('phase').textContent=value?'FLIGHT PAUSED':'IN FLIGHT';$('media-status').textContent=value?'Music and flight paused.':'';if(value){setLoading(false);clearNextTimer();current().pause();}else{inspecting=false;document.body.classList.remove('inspecting');if(!segmentComplete){setLoading(true);play();}}}
  $('pause').addEventListener('click',()=>pause(inspecting?false:!paused));$('next').addEventListener('click',next);$('replay').addEventListener('click',()=>{launch();($('play-music').hidden?$('sound'):$('play-music')).focus({preventScroll:true});});
  $('play-music').addEventListener('click',()=>{
   if(!running||mediaFailed)return;
@@ -106,7 +106,7 @@
   $('pause').textContent='Pause flight';$('pause').setAttribute('aria-pressed','false');$('phase').textContent='IN FLIGHT';
   current().muted=false;
   if(!segmentComplete&&(current().paused||current().readyState<3))setLoading(true);
-  updateSound();$('media-status').textContent='Playing automatically · next song follows';
+  updateSound();$('media-status').textContent='';
   // Preserve the browser's tap/keyboard permission to enable audible playback.
   if(!segmentComplete)play();
  });
@@ -116,7 +116,7 @@
   if(needsGesture||mediaFailed){const retrying=mediaFailed;paused=false;needsGesture=false;mediaFailed=false;setLoading(true);if(retrying||current().error)current().load();}
   else muted=!muted;
   current().muted=muted;updateSound();
-  if(playing&&!paused)$('media-status').textContent=muted?'Playing muted · next song follows':'Playing automatically · next song follows';
+  if(playing&&!paused)$('media-status').textContent='';
   // Call play directly within the tap, before any asynchronous work.
   if(!paused&&!segmentComplete)play();
  });
