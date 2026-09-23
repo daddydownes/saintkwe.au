@@ -486,3 +486,7 @@ body[data-front='3'] .hero .platform-link[aria-label='YouTube'] .platform-art im
  #contact .platform-link img{width:52px;height:52px}
  #contact .platform-link[aria-label='YouTube'] img{width:80px;height:68px;margin-top:-8px}
 }
+
+/* Approved molten intro: fine outline and a luminous current through the same text. */
+.kwe-aperture-outline{-webkit-text-stroke:.9px #ff4650}
+.kwe-aperture-crest{position:absolute;color:#ffb390;-webkit-text-stroke:0;clip-path:inset(100%);filter:drop-shadow(0 0 3px #ff492e);pointer-events:none}

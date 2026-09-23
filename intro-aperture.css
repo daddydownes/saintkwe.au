@@ -32,3 +32,7 @@ html.aperture-handoff .wordmark-stage h1{visibility:hidden}
 
 /* Fade the footage to black inside the existing circular closing mask. */
 .kwe-aperture-blackout{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none}
+
+/* Approved molten intro: fine outline and a luminous current through the same text. */
+.kwe-aperture-outline{-webkit-text-stroke:.9px #ff4650}
+.kwe-aperture-crest{position:absolute;color:#ffb390;-webkit-text-stroke:0;clip-path:inset(100%);filter:drop-shadow(0 0 3px #ff492e);pointer-events:none}

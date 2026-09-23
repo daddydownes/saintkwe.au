@@ -27,7 +27,7 @@
     const layer = document.createElement('div');
     layer.className = 'kwe-aperture is-preparing';
     layer.setAttribute('aria-label', 'Saint Kwe opening animation');
-    layer.innerHTML = '<div class="kwe-aperture-curtain top"></div><div class="kwe-aperture-curtain bottom"></div><div class="kwe-aperture-film is-loading" aria-hidden="true"><video muted playsinline preload="metadata" poster="assets/optimized/intro-poster.webp"><source data-src="assets/july20-intro.mp4?v=original-restored" type="video/mp4"></video></div><div class="kwe-aperture-line" aria-hidden="true"></div><p class="kwe-aperture-title" aria-hidden="true"><span class="kwe-aperture-outline">SAINT KWE</span><span class="kwe-aperture-fill">SAINT KWE</span></p>';
+    layer.innerHTML = '<div class="kwe-aperture-curtain top"></div><div class="kwe-aperture-curtain bottom"></div><div class="kwe-aperture-film is-loading" aria-hidden="true"><video muted playsinline preload="metadata" poster="assets/optimized/intro-poster.webp"><source data-src="assets/july20-intro.mp4?v=original-restored" type="video/mp4"></video></div><div class="kwe-aperture-line" aria-hidden="true"></div><p class="kwe-aperture-title" aria-hidden="true"><span class="kwe-aperture-outline">SAINT KWE</span><span class="kwe-aperture-fill">SAINT KWE</span><span class="kwe-aperture-crest">SAINT KWE</span></p>';
     document.body.append(layer);
     const inertTargets=[...document.body.children].filter(el=>el!==layer&&el.tagName!=='SCRIPT').map(el=>[el,el.inert]);
     inertTargets.forEach(([el])=>el.inert=true);
@@ -54,6 +54,17 @@
     skip.hidden = true;
     const title = layer.querySelector('.kwe-aperture-title');
     const fill = layer.querySelector('.kwe-aperture-fill');
+    const crest = layer.querySelector('.kwe-aperture-crest');
+    // Object-bounding-box masks preserve the real text and its handoff geometry.
+    const masks = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    masks.setAttribute('width','0');masks.setAttribute('height','0');
+    masks.setAttribute('aria-hidden','true');masks.style.position='absolute';
+    masks.innerHTML='<defs><clipPath id="kwe-molten-fill" clipPathUnits="objectBoundingBox"><path/></clipPath><clipPath id="kwe-molten-crest" clipPathUnits="objectBoundingBox"><path/></clipPath></defs>';
+    layer.append(masks);
+    const liquidPath=masks.querySelector('#kwe-molten-fill path');
+    const crestPath=masks.querySelector('#kwe-molten-crest path');
+    let moltenFrame;
+
     const line = layer.querySelector('.kwe-aperture-line');
     // The centre slit belongs to the footage reveal. Keeping it outside the
     // film let it flash before the video opacity animation had even started.
@@ -84,6 +95,7 @@
       window.removeEventListener('resize', resized);
       document.removeEventListener('visibilitychange', visibilityChanged);
       animations.forEach(animation => animation.cancel());
+      cancelAnimationFrame(moltenFrame);
       video.pause();
       downloadController.abort();
       video.removeAttribute('src');
@@ -106,6 +118,32 @@
       animation.finished.catch(() => {});
       animations.push(animation);return animation;
     };
+    const moltenFill = () => {
+      const clock=animate(layer,[{},{}],2300,0,'linear');
+      const clamp=value=>Math.max(0,Math.min(1,value));
+      const ease=value=>value*value*(3-2*value);
+      fill.style.clipPath='url(#kwe-molten-fill)';
+      crest.style.clipPath='url(#kwe-molten-crest)';
+      const draw = () => {
+        if(done)return;
+        const ms=Number(clock.currentTime)||0;
+        const progress=ease(clamp((ms-300)/1750));
+        const settle=ease(clamp((ms-1900)/350));
+        const level=1.45-progress*2, amplitude=.1*Math.sin(progress*Math.PI)*(1-settle);
+        const points=[];
+        for(let x=-.15;x<=1.151;x+=.013){
+          const y=level+Math.sin(x*15-ms*.002)*amplitude+Math.sin(x*30+ms*.0013)*amplitude*.22+(x-.5)*.18*Math.sin(progress*Math.PI);
+          points.push([x,y]);
+        }
+        const path=points.map(([x,y],i)=>(i?'L':'M')+x.toFixed(4)+' '+y.toFixed(4)).join(' ');
+        liquidPath.setAttribute('d',path+' L1.2 1.6 L-.2 1.6 Z');
+        crestPath.setAttribute('d',path+' '+[...points].reverse().map(([x,y])=>'L'+x.toFixed(4)+' '+(y+.012).toFixed(4)).join(' ')+' Z');
+        crest.style.opacity=String(1-settle);
+        if(ms<2300)moltenFrame=requestAnimationFrame(draw);
+        else {fill.style.clipPath='inset(-.5em -.12em -.5em -.12em)';crest.style.opacity='0';}
+      };
+      draw();
+    };
     // These clocks pause with the visual animations when playback buffers.
     const afterPlayback = (duration, callback) => {
       const clock = animate(layer, [{},{}], duration);
@@ -126,8 +164,7 @@
       // Fade the centre slit and footage together as the aperture opens outward.
       animate(film, [{opacity:0},{opacity:1}], 1100, 250, 'cubic-bezier(.4,0,.6,1)');
       animate(title, [{opacity:1,transform:'scale(.92)'},{opacity:1,transform:'scale(1)'}], 1150, 300);
-      // Extend the reveal above/below the tight line box so tall glyphs fill completely.
-      animate(fill, [{clipPath:'inset(-.5em 100% -.5em -.12em)'},{clipPath:'inset(-.5em -.12em -.5em -.12em)'}], 1300, 650, 'cubic-bezier(.4,0,.6,1)');
+      moltenFill();
       // Carry the same title into the real homepage heading while the aperture opens.
       afterPlayback(2400,()=>{
         if(done)return;
