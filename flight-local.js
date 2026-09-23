@@ -1,8 +1,8 @@
 (() => {
  'use strict';
  const $=id=>document.getElementById(id);
- const tracks=[['SUMMER AIN’T OVER','e_RMY3Msjro'],['WHO DEM BOYS','b9i6DAuP5qw'],['BABY BOY FREESTYLE','jFzVBUUswUA'],['BOBBY & WHITNEY','1eg_lb5T8kY'],['SPECIAL','hesCXfu5R5Y']];
- const artwork=id=>id==='hesCXfu5R5Y'?'assets/special-court-cover.png':id==='b9i6DAuP5qw'?'assets/b9i6DAuP5qw-hd.jpg':`assets/optimized/${id}-hd.webp`;
+ const tracks=[['SUMMER AIN’T OVER','e_RMY3Msjro'],['WHO DEM BOYS','b9i6DAuP5qw'],['BABY BOY FREESTYLE','jFzVBUUswUA'],['BOBBY & WHITNEY','1eg_lb5T8kY']];
+ const artwork=id=>id==='b9i6DAuP5qw'?'assets/b9i6DAuP5qw-hd.jpg':`assets/optimized/${id}-hd.webp`;
  const query=matchMedia('(prefers-reduced-motion: reduce)');
  let reduced=query.matches,index=0,running=false,paused=false,inspecting=false,muted=false,transition=0,last=0,playing=false;
  let needsGesture=false,mediaFailed=false,playRequest=0,depthSupported=true;
@@ -91,7 +91,7 @@
   loadPoster(i);loadPoster(i+1);
   if(panels[i+1])panels[i+1].append(videos[1]);
   $('poster').src=artwork(id);$('poster').alt=`${name} video artwork`;
-  $('track-title').textContent=name;$('screen-name').textContent=name;$('chapter').textContent='';$('counter').textContent=`${String(i+1).padStart(2,'0')} / ${tracks.length}`;$('transmission').textContent=String(i+1).padStart(2,'0');$('watch').href=`https://www.youtube.com/watch?v=${id}`;
+  $('track-title').textContent=name;$('screen-name').textContent=name;$('chapter').textContent='';$('counter').textContent=`${String(i+1).padStart(2,'0')} / ${String(tracks.length).padStart(2,'0')}`;$('transmission').textContent=String(i+1).padStart(2,'0');$('watch').href=`https://www.youtube.com/watch?v=${id}`;
   $('phase').textContent='IN FLIGHT';$('media-status').textContent='Loading the preview…';$('pause').textContent='Pause flight';$('pause').setAttribute('aria-pressed','false');updateSound();play();
  }
  function launch(){running=true;$('sound').hidden=false;$('journey').hidden=false;$('arrival').hidden=true;choose(0);}
