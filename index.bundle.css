@@ -472,3 +472,6 @@ body[data-front="3"] .front-visual img{object-position:50% 42%}@media(max-width:
 /* The opening links are marks only; YouTube's artwork needs more space to read equally. */
 body[data-front='3'] .hero .platform-link{min-height:max(44px,calc(var(--icon-size) + 8px));gap:0}
 body[data-front='3'] .hero .platform-link[aria-label='YouTube'] .platform-art img{position:absolute;top:50%;left:50%;width:185%;height:185%;max-width:none;transform:translate(-50%,-50%)}
+
+/* Conceal service names while preserving the spacing around each mark. */
+.hero .platform-link>span:not(.platform-art),.contact .platform-link>span{visibility:hidden}

@@ -140,3 +140,6 @@ html.kwe-route:not(.kwe-route-cover)::before,html.kwe-route:not(.kwe-route-cover
 #media-status:empty{display:none}
 @media(max-width:600px){.track-caption h2{font-size:clamp(46px,13vw,64px)}}
 @media(max-height:650px){.track-caption h2{font-size:clamp(38px,7vh,52px)}}
+
+/* Keep Listening service names are hidden without moving the logos. */
+.destinations a>span{visibility:hidden}
