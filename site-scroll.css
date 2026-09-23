@@ -1,12 +1,1 @@
-/* Native scrolling everywhere, with one optional settling point at 529.
-   Never force a swipe to stop or capture wheel/touch input. */
-@media (prefers-reduced-motion: no-preference) {
-  html { scroll-snap-type: y proximity; }
-  #music {
-    scroll-snap-align: start;
-    scroll-snap-stop: normal;
-  }
-  /* The opening controls their own scroll lock and handoff. */
-  html.kwe-intro-pending,
-  html.aperture-handoff { scroll-snap-type: none; }
-}
+/* Let the native scroll glide into and past 529 without a settling point. */

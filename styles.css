@@ -109,8 +109,7 @@ hr,[role="separator"]{display:none!important}
 
 
 /* Equal, direct service links for every track. */
-.release-list .track-row{display:grid;grid-template-columns:20px minmax(0,1fr) auto;align-items:center;gap:15px;padding:8px 0;min-height:64px}
-.track-number{font-size:12px;color:var(--muted)}
+.release-list .track-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:15px;padding:8px 0;min-height:64px}
 .release-list .track-row h3{font-size:24px;overflow-wrap:anywhere}
 .track-platforms{display:flex;align-items:center;gap:16px}
 .track-platforms a{display:flex;align-items:center;justify-content:center;width:48px;height:48px;flex:none;border-radius:10px;transition:background .2s,transform .2s}

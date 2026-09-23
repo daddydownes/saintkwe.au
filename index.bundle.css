@@ -109,8 +109,7 @@ hr,[role="separator"]{display:none!important}
 
 
 /* Equal, direct service links for every track. */
-.release-list .track-row{display:grid;grid-template-columns:20px minmax(0,1fr) auto;align-items:center;gap:15px;padding:8px 0;min-height:64px}
-.track-number{font-size:12px;color:var(--muted)}
+.release-list .track-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:15px;padding:8px 0;min-height:64px}
 .release-list .track-row h3{font-size:24px;overflow-wrap:anywhere}
 .track-platforms{display:flex;align-items:center;gap:16px}
 .track-platforms a{display:flex;align-items:center;justify-content:center;width:48px;height:48px;flex:none;border-radius:10px;transition:background .2s,transform .2s}
@@ -448,18 +447,7 @@ html.aperture-handoff .wordmark-stage h1{visibility:hidden}
 .kwe-aperture-controls[hidden],.kwe-aperture-controls button[hidden]{display:none}
 
 body[data-front="3"] .front-visual img{object-position:50% 42%}@media(max-width:600px){body[data-front="3"] .front-visual img{object-position:50% 38%}}
-/* Native scrolling everywhere, with one optional settling point at 529.
-   Never force a swipe to stop or capture wheel/touch input. */
-@media (prefers-reduced-motion: no-preference) {
-  html { scroll-snap-type: y proximity; }
-  #music {
-    scroll-snap-align: start;
-    scroll-snap-stop: normal;
-  }
-  /* The opening controls their own scroll lock and handoff. */
-  html.kwe-intro-pending,
-  html.aperture-handoff { scroll-snap-type: none; }
-}
+/* Let the native scroll glide into and past 529 without a settling point. */
 
 /* A tighter bridge from the photographs to the clothing announcement. */
 #archive{padding-bottom:24px}
@@ -480,3 +468,7 @@ body[data-front="3"] .front-visual img{object-position:50% 42%}@media(max-width:
 
 /* Fade the footage to black inside the existing circular closing mask. */
 .kwe-aperture-blackout{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none}
+
+/* The opening links are marks only; YouTube's artwork needs more space to read equally. */
+body[data-front='3'] .hero .platform-link{min-height:calc(var(--icon-size) + 8px);gap:0}
+body[data-front='3'] .hero .platform-link[aria-label='YouTube'] .platform-art img{position:absolute;top:50%;left:50%;width:215%;height:215%;max-width:none;transform:translate(-50%,-50%)}
