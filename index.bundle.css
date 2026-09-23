@@ -470,5 +470,5 @@ body[data-front="3"] .front-visual img{object-position:50% 42%}@media(max-width:
 .kwe-aperture-blackout{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none}
 
 /* The opening links are marks only; YouTube's artwork needs more space to read equally. */
-body[data-front='3'] .hero .platform-link{min-height:calc(var(--icon-size) + 8px);gap:0}
-body[data-front='3'] .hero .platform-link[aria-label='YouTube'] .platform-art img{position:absolute;top:50%;left:50%;width:215%;height:215%;max-width:none;transform:translate(-50%,-50%)}
+body[data-front='3'] .hero .platform-link{min-height:max(44px,calc(var(--icon-size) + 8px));gap:0}
+body[data-front='3'] .hero .platform-link[aria-label='YouTube'] .platform-art img{position:absolute;top:50%;left:50%;width:185%;height:185%;max-width:none;transform:translate(-50%,-50%)}
