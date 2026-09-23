@@ -473,5 +473,16 @@ body[data-front="3"] .front-visual img{object-position:50% 42%}@media(max-width:
 body[data-front='3'] .hero .platform-link{min-height:max(44px,calc(var(--icon-size) + 8px));gap:0}
 body[data-front='3'] .hero .platform-link[aria-label='YouTube'] .platform-art img{position:absolute;top:50%;left:50%;width:185%;height:185%;max-width:none;transform:translate(-50%,-50%)}
 
-/* Conceal service names while preserving the spacing around each mark. */
-.hero .platform-link>span:not(.platform-art),.contact .platform-link>span{visibility:hidden}
+/* Keep the opening links as marks only. */
+.hero .platform-link>span:not(.platform-art){visibility:hidden}
+
+/* Larger marks in FIND KWE, with the existing link positions preserved. */
+#contact .platform-link{width:80px;min-width:80px;min-height:100px;justify-content:flex-start;gap:0;padding:9px 0 0}
+#contact .platform-link img{width:60px;height:60px;max-width:none}
+#contact .platform-link[aria-label='YouTube'] img{width:88px;height:76px;margin-top:-8px}
+@media(max-width:600px){
+ #contact .platform-link{width:60px;min-width:60px;min-height:94px}
+ #contact .platform-link:nth-child(2){width:65px;min-width:65px}
+ #contact .platform-link img{width:52px;height:52px}
+ #contact .platform-link[aria-label='YouTube'] img{width:80px;height:68px;margin-top:-8px}
+}
