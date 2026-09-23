@@ -114,6 +114,7 @@
     const start = () => {
       if (started || done || !fontsReady || !frameReady || buffering || document.hidden) return;
       started = true;
+      window.dispatchEvent(new Event('kwe:intro-ready'));
       if (reduced.matches || !layer.animate) { finish(); return; }
       settle();
       if(heading){const headingStyle=getComputedStyle(heading);title.style.fontFamily=headingStyle.fontFamily;title.style.fontWeight=headingStyle.fontWeight;title.style.letterSpacing='-.045em';}

@@ -8,12 +8,22 @@
  let needsGesture=false,mediaFailed=false,loadingSlow=false,playRequest=0,depthSupported=true,suspended=false;
  let loadingTimer;
  let departure=0,segmentComplete=false,nextFallback=false,nextLoadingTimer;
+ const clamp=(value,min=0,max=1)=>Math.min(max,Math.max(min,value));
+ const smooth=value=>{const t=clamp(value);return t*t*(3-2*t);};
+ const depth=2400,perspective=900,travelTime=3.6;
  const screen=$('screen'),videos=[document.createElement('video'),document.createElement('video')];
  const intentionalPauses=new WeakSet();
  function pauseMedia(v){intentionalPauses.add(v);v.pause();}
  const wrapper=$('player-wrap');wrapper.replaceChildren(...videos);wrapper.hidden=false;
  const camera=document.createElement('div');camera.className='flight-camera';wrapper.replaceChildren(camera);
- const panels=tracks.map(([name,id],i)=>{const panel=document.createElement('a');panel.className='flight-panel';panel.href='https://www.youtube.com/watch?v='+id;panel.target='_blank';panel.rel='noopener';panel.setAttribute('aria-label','Watch '+name+' on YouTube');panel.title='Watch full video on YouTube';panel.tabIndex=i===0?0:-1;panel.addEventListener('click',()=>pause(true));panel.style.transform=`translate3d(${i%2?260:-260}px,${i%3===1?65:0}px,${-i*2400}px)`;const poster=document.createElement('img');poster.dataset.src=artwork(id);poster.alt='';panel.append(poster);camera.append(panel);return panel;});
+ const title=$('track-title'),incomingTitle=document.createElement('div');
+ incomingTitle.className='incoming-title';incomingTitle.setAttribute('aria-hidden','true');
+ const titleStage=document.createElement('div');titleStage.className='title-stage';title.before(titleStage);titleStage.append(title,incomingTitle);
+ let titleWords=[],incomingWords=[],titleEntry=0;
+ function wordsInto(element,name){element.replaceChildren();return name.split(' ').map((word,i)=>{if(i)element.append(' ');const span=document.createElement('span');span.className='title-word';span.textContent=word;element.append(span);return span;});}
+ function setTitles(i){title.setAttribute('aria-label',tracks[i][0]);titleWords=wordsInto(title,tracks[i][0]);titleWords.forEach(word=>word.setAttribute('aria-hidden','true'));incomingWords=wordsInto(incomingTitle,tracks[i+1]?.[0]||'');}
+ function poseTitle(words,progress,incoming){words.forEach((word,i)=>{const stagger=i*.045,p=smooth((progress-stagger)/.78),hidden=incoming?1-p:p;word.style.opacity=String(1-hidden);word.style.transform=`translate3d(${hidden*(incoming?65:-85)}px,${hidden*(incoming?28:-18)}px,${-hidden*100}px) rotateY(${hidden*(incoming?-24:24)}deg) rotateZ(${hidden*(incoming?3:-3)}deg)`;});}
+ const panels=tracks.map(([name,id],i)=>{const panel=document.createElement('a');panel.className='flight-panel';panel.href='https://www.youtube.com/watch?v='+id;panel.target='_blank';panel.rel='noopener';panel.setAttribute('aria-label','Watch '+name+' on YouTube');panel.title='Watch full video on YouTube';panel.tabIndex=i===0?0:-1;panel.addEventListener('click',()=>pause(true));panel.style.transform=`translate3d(${i%2?260:-260}px,${i%3===1?65:0}px,${-i*depth}px)`;const poster=document.createElement('img');poster.dataset.src=artwork(id);poster.alt='';panel.append(poster);camera.append(panel);return panel;});
  function markPlaying(v){
   if(v!==current()||!running||paused||suspended)return;
   playing=true;needsGesture=false;mediaFailed=false;loadingSlow=false;
@@ -41,10 +51,12 @@
  function loadPoster(i,retry=false){
   const panel=panels[i];if(!panel)return;
   const img=panel.querySelector('img');
-  if(!retry&&img.getAttribute('src'))return;
+  const ready=()=>{if(img.naturalWidth)panel.classList.add('poster-ready');};
+  const decoded=()=>{if(img.decode)img.decode().then(ready,ready);else ready();};
+  img.onload=decoded;img.onerror=()=>panel.classList.remove('poster-ready');
+  // The shared image loader may have completed this poster before we arrive.
+  if(!retry&&img.getAttribute('src')){if(img.complete)decoded();return;}
   panel.classList.remove('poster-ready');
-  img.onload=()=>{const ready=()=>{if(img.naturalWidth)panel.classList.add('poster-ready');};if(img.decode)img.decode().then(ready,ready);else ready();};
-  img.onerror=()=>panel.classList.remove('poster-ready');
   delete img.dataset.src;img.src=artwork(tracks[i][1]);
  }
  function nextReady(){return !!panels[index+1]?.classList.contains('poster-ready')&&videos[1].dataset.source===`assets/optimized/${tracks[index+1]?.[1]}-hq.mp4`&&videos[1].readyState>=3;}
@@ -114,12 +126,12 @@
    $('media-status').textContent='Tap Play Music in the centre to start the music.';
   }
  }
- function choose(i){clearLoadingTimer();clearNextTimer();departure=0;segmentComplete=false;nextFallback=false;++playRequest;videos.forEach(v=>{pauseMedia(v);v.hidden=true;});panels.forEach(panel=>{panel.classList.remove('is-loading','has-frame');panel.setAttribute('aria-busy','false');});index=i;playing=false;needsGesture=false;mediaFailed=false;loadingSlow=false;transition=0;paused=false;inspecting=false;document.body.classList.remove('inspecting');document.body.classList.add('previewing');setLoading(true);
+ function choose(i,arrived=false){clearLoadingTimer();clearNextTimer();departure=0;segmentComplete=false;nextFallback=false;++playRequest;videos.forEach(v=>{pauseMedia(v);v.hidden=true;});panels.forEach(panel=>{panel.classList.remove('is-loading','has-frame');panel.setAttribute('aria-busy','false');});index=i;playing=false;needsGesture=false;mediaFailed=false;loadingSlow=false;transition=arrived?1.6:0;paused=false;inspecting=false;document.body.classList.remove('inspecting');document.body.classList.add('previewing');setLoading(true);
   panels.forEach((panel,n)=>{panel.tabIndex=n===i?0:-1;panel.inert=n!==i;});const [name,id]=tracks[i];prepare(current(),i);panels[i].append(current());current().currentTime=0;current().hidden=false;
   loadPoster(i);loadPoster(i+1);
   if(panels[i+1])panels[i+1].append(videos[1]);
   $('poster').src=artwork(id);$('poster').alt=`${name} video artwork`;
-  $('track-title').textContent=name;$('screen-name').textContent=name;$('chapter').textContent='';$('counter').textContent=`${String(i+1).padStart(2,'0')} / ${String(tracks.length).padStart(2,'0')}`;$('transmission').textContent=String(i+1).padStart(2,'0');$('watch').href=`https://www.youtube.com/watch?v=${id}`;
+  setTitles(i);titleEntry=arrived?1.6:0;$('screen-name').textContent=name;$('chapter').textContent='';$('counter').textContent=`${String(i+1).padStart(2,'0')} / ${String(tracks.length).padStart(2,'0')}`;$('transmission').textContent=String(i+1).padStart(2,'0');$('watch').href=`https://www.youtube.com/watch?v=${id}`;
   $('phase').textContent='IN FLIGHT';$('media-status').textContent='Loading the preview…';$('pause').textContent='Pause flight';$('pause').setAttribute('aria-pressed','false');updateSound();play();
  }
  function launch(){suspended=false;running=true;$('sound').hidden=false;$('journey').hidden=false;$('arrival').hidden=true;choose(0);}
@@ -137,9 +149,9 @@
   setLoading(true);play();
  }
  window.KweFlight={suspend,resume};
- function next(){if(index+1===tracks.length)finish();else choose(index+1);}
+ function next(arrived=false){if(index+1===tracks.length)finish();else choose(index+1,arrived);}
  function pause(value){if(suspended&&!value)return;paused=value;updateSound();$('pause').textContent=value?'Resume flight':'Pause flight';$('pause').setAttribute('aria-pressed',String(value));$('phase').textContent=value?'FLIGHT PAUSED':'IN FLIGHT';$('media-status').textContent=value?'Music and flight paused.':'';if(value){setLoading(false);clearNextTimer();pauseMedia(current());}else{inspecting=false;document.body.classList.remove('inspecting');if(!segmentComplete){setLoading(true);play();}}}
- $('pause').addEventListener('click',()=>pause(inspecting?false:!paused));$('next').addEventListener('click',next);$('replay').addEventListener('click',()=>{launch();($('play-music').hidden?$('sound'):$('play-music')).focus({preventScroll:true});});
+ $('pause').addEventListener('click',()=>pause(inspecting?false:!paused));$('next').addEventListener('click',()=>next());$('replay').addEventListener('click',()=>{launch();($('play-music').hidden?$('sound'):$('play-music')).focus({preventScroll:true});});
  $('play-music').addEventListener('click',()=>{
   if(!running||suspended||mediaFailed)return;
   muted=false;paused=false;needsGesture=false;inspecting=false;
@@ -175,21 +187,37 @@
  screen.style.transform='none';screen.style.opacity='1';
  const progress=$('progress');
  function frame(now){const dt=Math.min((now-last)/1000,.05)||0;last=now;
-  if(running&&!suspended){const v=current(),t=v.currentTime,d=Math.min(Number.isFinite(v.duration)?v.duration:8,8);if(playing&&!paused)transition+=dt;
+  if(running&&!suspended){const v=current(),t=v.currentTime,d=Math.min(Number.isFinite(v.duration)?v.duration:8,8);if(playing&&!paused)transition+=dt;if(!paused)titleEntry+=dt;
    // Keep the last sharp frame until the destination can actually play. A
    // separate clock preserves the original arc even when loading finishes late.
-   if(!paused&&!inspecting&&!mediaFailed&&(playing||segmentComplete)&&index<tracks.length-1&&t>=d-3.2){
+   if(!paused&&!inspecting&&!mediaFailed&&(playing||segmentComplete)&&index<tracks.length-1&&t>=d-travelTime){
     prepare(videos[1],index+1);
-    if(nextReady()||nextFallback){clearNextTimer();departure=Math.min(1,departure+dt/3.2);}
+    if(nextReady()||nextFallback){clearNextTimer();if(nextReady()&&!needsGesture)$('media-status').textContent='';departure=Math.min(1,departure+dt/travelTime);}
     else waitForNext();
    }
    if(!paused&&!inspecting&&t>=d)completeSegment();
-   if(segmentComplete&&departure>=1&&!paused){next();requestAnimationFrame(frame);return;}
-   const enter=Math.min(1,transition/1.6),leave=departure,ease=leave*leave*(3-2*leave),nextIndex=Math.min(index+1,tracks.length-1);
-   // Bend beyond the screen edge before crossing its depth, then settle at the next screen.
-   const arc=Math.pow(Math.sin(Math.PI*ease),2),clearance=screen.clientWidth*1.15+520,side=index%2?1:-1;
-   const x=(index%2?260:-260)*(1-ease)+(nextIndex%2?260:-260)*ease+side*arc*clearance,y=(index%3===1?65:0)*(1-ease)+(nextIndex%3===1?65:0)*ease-arc*screen.clientHeight*.15,z=(index+ease)*2400-(index===0?1100*Math.pow(1-enter,3):0);
-   camera.style.transform=reduced?`translate3d(${-(index%2?260:-260)}px,${-(index%3===1?65:0)}px,${index*2400}px)`:`translate3d(${-x}px,${-y}px,${z}px)`;
+   if(segmentComplete&&departure>=1&&!paused){next(true);requestAnimationFrame(frame);return;}
+   const enter=clamp(transition/1.6),leave=departure,ease=smooth(leave),nextIndex=Math.min(index+1,tracks.length-1);
+   const flat=reduced||!depthSupported;
+   // Travel round the RIGHT edge, then look back into the next screen. Rotating
+   // at the eye (the perspective distance) makes the turn read as a real orbit.
+   const arc=Math.pow(Math.sin(Math.PI*ease),1.3),clearance=screen.clientWidth*.85+440;
+   const fromX=index%2?260:-260,toX=nextIndex%2?260:-260;
+   const fromY=index%3===1?65:0,toY=nextIndex%3===1?65:0;
+   const x=fromX*(1-ease)+toX*ease+arc*clearance;
+   const y=fromY*(1-ease)+toY*ease-arc*screen.clientHeight*.09;
+   const z=(index+ease)*depth-(index===0?1100*Math.pow(1-enter,3):0);
+   const gaze=smooth((leave-.06)/.48),targetX=fromX*(1-gaze)+toX*gaze,targetY=fromY*(1-gaze)+toY*gaze;
+   const distance=perspective+(index+gaze)*depth-z;
+   const yaw=Math.atan2(targetX-x,distance)*180/Math.PI;
+   const pitch=-Math.atan2(targetY-y,Math.hypot(targetX-x,distance))*180/Math.PI;
+   const bank=-Math.sin(Math.PI*leave)*3.5;
+   camera.style.transform=flat?`translate3d(${-fromX}px,${-fromY}px,${index*depth}px)`:`translateZ(${perspective}px) rotateZ(${bank}deg) rotateX(${pitch}deg) rotateY(${yaw}deg) translate3d(${-x}px,${-y}px,${z-perspective}px)`;
+   // Retire the current words with the departing frame; reveal the next title
+   // as its screen swings into view. Both settle before playback changes clips.
+   if(flat){poseTitle(titleWords,0,false);poseTitle(incomingWords,0,true);}
+   else if(leave>0){poseTitle(titleWords,clamp(leave/.50),false);poseTitle(incomingWords,clamp((leave-.12)/.68),true);}
+   else{poseTitle(titleWords,clamp(titleEntry/1.6),true);poseTitle(incomingWords,0,true);}
    progress.style.width=`${(index+Math.min(1,t/d))/tracks.length*100}%`;
   }requestAnimationFrame(frame);
  }requestAnimationFrame(frame);launch();
