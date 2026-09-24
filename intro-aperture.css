@@ -36,6 +36,6 @@ html.aperture-handoff .wordmark-stage h1{visibility:hidden}
 /* Draw the outline clearly, with a restrained light following its strokes. */
 .kwe-aperture-outline{-webkit-text-stroke:clamp(1.8px,.215vw,3.1px) #ff3541}
 .kwe-aperture-drawing{position:absolute;overflow:visible;pointer-events:none}
-.kwe-aperture-drawing text{fill:none;stroke-linecap:round;stroke-linejoin:round}
-.kwe-outline-stroke{stroke:#ff3541;filter:drop-shadow(0 0 3px #ff303860)}
-.kwe-outline-shine{stroke:#ffb4a7;filter:drop-shadow(0 0 3px #ff544c80)}
+.kwe-aperture-drawing use{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.kwe-outline-stroke{stroke:#ff4650}
+.kwe-outline-bloom{stroke:#ff492e;stroke-width:9;opacity:0}

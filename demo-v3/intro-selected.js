@@ -104,41 +104,34 @@
       animation.finished.catch(() => {});
       animations.push(animation);return animation;
     };
-    const outlineLead = 3400;
+    const outlineLead = 1800;
     const drawOutline = () => {
       const guide=layer.querySelector('.kwe-aperture-outline');
-      const style=getComputedStyle(guide), size=parseFloat(style.fontSize);
-      const width=guide.offsetWidth,height=guide.offsetHeight;
+      const style=getComputedStyle(guide), size=parseFloat(style.fontSize), scale=size/260;
       const canvas=document.createElement('canvas').getContext('2d');
       canvas.font=`${style.fontWeight} ${size}px ${style.fontFamily}`;
       const metrics=canvas.measureText('SAINT KWE');
       const ascent=metrics.fontBoundingBoxAscent??size*.9;
       const descent=metrics.fontBoundingBoxDescent??size*.25;
-      const baseline=(height-ascent-descent)/2+ascent;
+      const baseline=(guide.offsetHeight-ascent-descent)/2+ascent;
       const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
-      svg.classList.add('kwe-aperture-drawing');
-      svg.setAttribute('width',width);svg.setAttribute('height',height);
+      svg.classList.add('kwe-aperture-drawing');svg.setAttribute('viewBox','0 0 1400 500');
+      svg.setAttribute('width',1400*scale);svg.setAttribute('height',500*scale);
       svg.setAttribute('aria-hidden','true');
-      const makeStroke = className => {
-        const text=document.createElementNS(svg.namespaceURI,'text');
-        text.textContent='SAINT KWE';text.setAttribute('x','0');text.setAttribute('y',baseline);
-        text.style.fontFamily=style.fontFamily;text.style.fontWeight=style.fontWeight;
-        text.style.fontSize=size+'px';text.style.letterSpacing=style.letterSpacing;
-        text.setAttribute('textLength',width);text.setAttribute('lengthAdjust','spacingAndGlyphs');
-        text.setAttribute('class',className);text.style.strokeWidth=Math.max(1.8,size*.012)+'px';
-        svg.append(text);return text;
-      };
-      const stroke=makeStroke('kwe-outline-stroke');
-      const shine=makeStroke('kwe-outline-shine');
+      svg.style.transform=`translateY(${baseline-guide.offsetHeight/2-90*scale}px)`;
+      // The FIRST demo's exact text, viewBox, dash length, smoothstep draw and scale.
+      // Keep its trace shape; only stroke weight is increased for the live opening.
+      svg.innerHTML='<defs><text id="kwe-trace-word" x="700" y="340" text-anchor="middle" style="font-family:Barlow Condensed,Impact,sans-serif;font-size:260px;font-weight:900;letter-spacing:-10px">SAINT KWE</text><filter id="kwe-trace-bloom" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4"/></filter></defs><use class="kwe-outline-bloom" href="#kwe-trace-word" filter="url(#kwe-trace-bloom)"/><use class="kwe-outline-stroke" href="#kwe-trace-word"/>';
       title.append(svg);
-      // Dash lengths scale with the type so the phone draw lasts as long as desktop.
-      const length=size*6;
-      stroke.style.strokeDasharray=String(length);
-      shine.style.strokeDasharray=`${size*.14} ${length}`;
-      animate(stroke,[{strokeDashoffset:String(length)},{strokeDashoffset:'0'}],3000,150,'linear');
-      animate(shine,[{strokeDashoffset:String(length),opacity:0},{opacity:.75,offset:.18},{opacity:.75,offset:.8},{strokeDashoffset:'0',opacity:0}],3000,150,'linear');
-      animate(guide,[{opacity:.16},{opacity:.16}],3750,0,'linear');
-      // The original red wipe takes over only after the black outline sequence.
+      const stroke=svg.querySelector('.kwe-outline-stroke'), bloom=svg.querySelector('.kwe-outline-bloom');
+      stroke.style.strokeWidth=Math.max(2.4,1.8/scale)+'px';
+      stroke.style.strokeDasharray='1100';
+      const smoothstep='cubic-bezier(.333333,0,.666667,1)';
+      animate(stroke,[{strokeDashoffset:'1100',opacity:.35},{strokeDashoffset:'0',opacity:1}],1500,0,smoothstep);
+      animate(title,[{opacity:1,transform:'scale(.975)'},{opacity:1,transform:'scale(1)'}],4600,0,smoothstep);
+      animate(guide,[{opacity:0},{opacity:0}],outlineLead+2400,0,'linear');
+      // Adapt the demo's warm blurred crest into an outline-completion glow.
+      animate(bloom,[{opacity:0},{opacity:.65,offset:.5},{opacity:0}],650,1250,'ease-in-out');
       animate(svg,[{opacity:1},{opacity:0}],220,outlineLead+1950,'ease-in-out');
     };
     // These clocks pause with the visual animations when playback buffers.
@@ -151,7 +144,7 @@
       started = true;
       if (reduced.matches || !layer.animate) { finish(); return; }
       settle();
-      if(heading){const headingStyle=getComputedStyle(heading);title.style.fontFamily=headingStyle.fontFamily;title.style.fontWeight=headingStyle.fontWeight;title.style.letterSpacing='-.045em';}
+      if(heading){const headingStyle=getComputedStyle(heading);title.style.fontFamily=headingStyle.fontFamily;title.style.fontWeight=headingStyle.fontWeight;title.style.letterSpacing='-.038461538em';}
       layer.classList.remove('is-preparing');
       controls.hidden = true;
       root.classList.add('aperture-handoff');
@@ -163,7 +156,6 @@
       animate(film, [{clipPath:'inset(49.85% 0)'},{clipPath:'inset(24% 0)'}], 1250, outlineLead+250);
       // Fade the centre slit and footage together as the aperture opens outward.
       animate(film, [{opacity:0},{opacity:1}], 1100, outlineLead+250, 'cubic-bezier(.4,0,.6,1)');
-      animate(title, [{opacity:1,transform:'scale(.92)'},{opacity:1,transform:'scale(1)'}], 1150, outlineLead+300);
       // Original simple left-to-right red fill; no liquid or opacity dissolve.
       animate(fill, [{clipPath:'inset(-.5em 100% -.5em -.12em)'},{clipPath:'inset(-.5em -.12em -.5em -.12em)'}], 1300, outlineLead+650, 'cubic-bezier(.4,0,.6,1)');
       // Carry the same title into the real homepage heading while the aperture opens.
