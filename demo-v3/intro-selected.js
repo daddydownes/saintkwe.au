@@ -104,6 +104,7 @@
       animation.finished.catch(() => {});
       animations.push(animation);return animation;
     };
+    const outlineLead = 3400;
     const drawOutline = () => {
       const guide=layer.querySelector('.kwe-aperture-outline');
       const style=getComputedStyle(guide), size=parseFloat(style.fontSize);
@@ -137,10 +138,8 @@
       animate(stroke,[{strokeDashoffset:String(length)},{strokeDashoffset:'0'}],3000,150,'linear');
       animate(shine,[{strokeDashoffset:String(length),opacity:0},{opacity:.75,offset:.18},{opacity:.75,offset:.8},{strokeDashoffset:'0',opacity:0}],3000,150,'linear');
       animate(guide,[{opacity:.16},{opacity:.16}],3750,0,'linear');
-      // Hold the completed outline, then resolve as one clean word, without a sweep.
-      fill.style.clipPath='inset(-.5em -.12em -.5em -.12em)';
-      animate(fill,[{opacity:0},{opacity:1}],280,3500,'ease-in-out');
-      animate(svg,[{opacity:1},{opacity:0}],280,3500,'ease-in-out');
+      // The original red wipe takes over only after the black outline sequence.
+      animate(svg,[{opacity:1},{opacity:0}],220,outlineLead+1950,'ease-in-out');
     };
     // These clocks pause with the visual animations when playback buffers.
     const afterPlayback = (duration, callback) => {
@@ -156,14 +155,19 @@
       layer.classList.remove('is-preparing');
       controls.hidden = true;
       root.classList.add('aperture-handoff');
-      animate(line, [{transform:'scaleX(0)'},{transform:'scaleX(1)',offset:.7},{transform:'scaleX(1)',opacity:0}], 850);
-      animate(film, [{clipPath:'inset(49.85% 0)'},{clipPath:'inset(24% 0)'}], 1250, 250);
-      // Fade the centre slit and footage together as the aperture opens outward.
-      animate(film, [{opacity:0},{opacity:1}], 1100, 250, 'cubic-bezier(.4,0,.6,1)');
-      animate(title, [{opacity:1,transform:'scale(.92)'},{opacity:1,transform:'scale(1)'}], 1150, 300);
       drawOutline();
+      // Give the stroke writing its own black stage. Then replay the original
+      // 3341279 aperture/fill/handoff timings, offset by this opening chapter.
+      afterPlayback(outlineLead,()=>{video.currentTime=0;});
+      animate(line, [{transform:'scaleX(0)'},{transform:'scaleX(1)',offset:.7},{transform:'scaleX(1)',opacity:0}], 850, outlineLead);
+      animate(film, [{clipPath:'inset(49.85% 0)'},{clipPath:'inset(24% 0)'}], 1250, outlineLead+250);
+      // Fade the centre slit and footage together as the aperture opens outward.
+      animate(film, [{opacity:0},{opacity:1}], 1100, outlineLead+250, 'cubic-bezier(.4,0,.6,1)');
+      animate(title, [{opacity:1,transform:'scale(.92)'},{opacity:1,transform:'scale(1)'}], 1150, outlineLead+300);
+      // Original simple left-to-right red fill; no liquid or opacity dissolve.
+      animate(fill, [{clipPath:'inset(-.5em 100% -.5em -.12em)'},{clipPath:'inset(-.5em -.12em -.5em -.12em)'}], 1300, outlineLead+650, 'cubic-bezier(.4,0,.6,1)');
       // Carry the same title into the real homepage heading while the aperture opens.
-      afterPlayback(3800,()=>{
+      afterPlayback(outlineLead+2400,()=>{
         if(done)return;
         try{
           const range=document.createRange();range.selectNodeContents(heading);
