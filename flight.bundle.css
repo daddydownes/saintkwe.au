@@ -151,11 +151,20 @@ html.kwe-route:not(.kwe-route-cover)::before,html.kwe-route:not(.kwe-route-cover
 .title-stage{position:relative;perspective:900px}
 .track-caption h2,.incoming-title{font-size:clamp(48px,6vw,80px);line-height:.92;letter-spacing:-.015em;display:flex;flex-wrap:wrap;align-content:center;justify-content:center;column-gap:.2em;min-height:.92em}
 .incoming-title{position:absolute;inset:0;pointer-events:none;font-family:var(--display);font-weight:800}
-.title-word{display:inline-block;will-change:transform,opacity;transform-origin:50% 65%;backface-visibility:hidden}
-.incoming-title .title-word{opacity:0}
+.title-word{display:inline-flex;white-space:nowrap}
+.title-glyph{display:inline-block;will-change:transform;transform-origin:50% 65%;backface-visibility:hidden}
+.incoming-title .title-glyph{visibility:hidden}
 @media(max-width:600px){.track-caption h2,.incoming-title{font-size:clamp(46px,13vw,64px);min-height:1.84em}}
 @media(max-height:650px){.track-caption h2,.incoming-title{font-size:clamp(38px,7vh,52px)}}
-@media(prefers-reduced-motion:reduce){.title-word{will-change:auto}}
+@media(prefers-reduced-motion:reduce){.title-glyph{will-change:auto}}
 
 /* Buffering messages have a reserved line so the lens does not jump vertically. */
 @media(min-height:501px){#media-status:empty{display:block}#media-status{min-height:1.5em}}
+
+/* The full video is a clear choice on touch screens as well as desktop. */
+#watch{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:12px 22px;margin-top:10px;border-radius:3px;background:#ff3038;color:#090909;font:700 13px/1.2 Inter,Arial,sans-serif;text-decoration:none;white-space:nowrap;transition:background-color .18s,transform .18s}
+#watch:hover{background:#ff5a60;color:#090909;transform:translateY(-2px)}
+#watch:active{transform:translateY(0)}
+#watch:focus-visible{outline:2px solid #fff;outline-offset:4px}
+@media(max-width:600px){#watch{min-height:48px;padding:12px 20px;margin-top:8px;font-size:13px}}
+@media(prefers-reduced-motion:reduce){#watch{transition:none}#watch:hover,#watch:active{transform:none}}

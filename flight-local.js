@@ -18,9 +18,10 @@
  incomingTitle.className='incoming-title';incomingTitle.setAttribute('aria-hidden','true');
  const titleStage=document.createElement('div');titleStage.className='title-stage';title.before(titleStage);titleStage.append(title,incomingTitle);
  let titleWords=[],incomingWords=[],titleEntry=0;
- function wordsInto(element,name){element.replaceChildren();return name.split(' ').map((word,i)=>{if(i)element.append(' ');const span=document.createElement('span');span.className='title-word';span.textContent=word;element.append(span);return span;});}
+ function wordsInto(element,name){element.replaceChildren();const glyphs=[];name.split(' ').forEach((word,i)=>{if(i)element.append(' ');const group=document.createElement('span');group.className='title-word';for(const letter of word){const glyph=document.createElement('span');glyph.className='title-glyph';glyph.textContent=letter;group.append(glyph);glyphs.push(glyph);}element.append(group);});return glyphs;}
  function setTitles(i){title.setAttribute('aria-label',tracks[i][0]);titleWords=wordsInto(title,tracks[i][0]);titleWords.forEach(word=>word.setAttribute('aria-hidden','true'));incomingWords=wordsInto(incomingTitle,tracks[i+1]?.[0]||'');}
- function poseTitle(words,progress,incoming){words.forEach((word,i)=>{const stagger=i*.045,p=smooth((progress-stagger)/.78),hidden=incoming?1-p:p;word.style.opacity=String(1-hidden);word.style.transform=`translate3d(${hidden*(incoming?65:-85)}px,${hidden*(incoming?28:-18)}px,${-hidden*100}px) rotateY(${hidden*(incoming?-24:24)}deg) rotateZ(${hidden*(incoming?3:-3)}deg)`;});}
+ function setWatch(i){const watch=$('watch');if(watch.dataset.track===String(i))return;watch.dataset.track=String(i);watch.href=`https://www.youtube.com/watch?v=${tracks[i][1]}`;watch.setAttribute('aria-label',`Watch ${tracks[i][0]} music video on YouTube`);}
+ function poseTitle(glyphs,progress,incoming){const distance=Math.max(innerWidth*1.4,700);glyphs.forEach((glyph,i)=>{const stagger=i*.003,p=smooth((progress-stagger)/.72),travel=incoming?1-p:p;glyph.style.visibility='visible';glyph.style.opacity='1';glyph.style.transform=`translate3d(${(incoming?-1:1)*travel*distance}px,${(incoming?1:-1)*travel*32-Math.sin(Math.PI*p)*20}px,${-travel*110}px) rotateY(${(incoming?-1:1)*travel*22}deg) rotateZ(${-travel*3}deg)`;});}
  const panels=tracks.map(([name,id],i)=>{const panel=document.createElement('a');panel.className='flight-panel';panel.href='https://www.youtube.com/watch?v='+id;panel.target='_blank';panel.rel='noopener';panel.setAttribute('aria-label','Watch '+name+' on YouTube');panel.title='Watch full video on YouTube';panel.tabIndex=i===0?0:-1;panel.addEventListener('click',()=>pause(true));panel.style.transform=`translate3d(${i%2?260:-260}px,${i%3===1?65:0}px,${-i*depth}px)`;const poster=document.createElement('img');poster.dataset.src=artwork(id);poster.alt='';panel.append(poster);camera.append(panel);return panel;});
  videos.forEach(v=>{v.preload='auto';v.playsInline=true;v.setAttribute('playsinline','');v.volume=.65;v.hidden=true;
   v.addEventListener('playing',()=>{if(v!==current()||!running||paused||mediaFailed)return;playing=true;needsGesture=false;mediaFailed=false;panels[index].classList.add('has-frame');setLoading(false);updateSound();$('media-status').textContent='';});
@@ -103,7 +104,7 @@
   loadPoster(i);loadPoster(i+1);
   if(panels[i+1])panels[i+1].append(videos[1]);
   $('poster').src=artwork(id);$('poster').alt=`${name} video artwork`;
-  setTitles(i);titleEntry=arrived?1.6:0;$('screen-name').textContent=name;$('chapter').textContent='';$('counter').textContent=`${String(i+1).padStart(2,'0')} / ${String(tracks.length).padStart(2,'0')}`;$('transmission').textContent=String(i+1).padStart(2,'0');$('watch').href=`https://www.youtube.com/watch?v=${id}`;
+  setTitles(i);titleEntry=arrived?1.6:0;$('screen-name').textContent=name;$('chapter').textContent='';$('counter').textContent=`${String(i+1).padStart(2,'0')} / ${String(tracks.length).padStart(2,'0')}`;$('transmission').textContent=String(i+1).padStart(2,'0');setWatch(i);
   $('phase').textContent='IN FLIGHT';$('media-status').textContent='Loading the preview…';$('pause').textContent='Pause flight';$('pause').setAttribute('aria-pressed','false');updateSound();play();
  }
  function launch(){running=true;$('sound').hidden=false;$('journey').hidden=false;$('arrival').hidden=true;choose(0);}
@@ -153,6 +154,7 @@
    if(!paused&&!inspecting&&t>=d)completeSegment();
    if(segmentComplete&&departure>=1&&!paused&&!nextFailed){next(true);requestAnimationFrame(frame);return;}
    const enter=clamp(transition/1.6),leave=departure,ease=smooth(leave),nextIndex=Math.min(index+1,tracks.length-1);
+   if(leave>.55)setWatch(nextIndex);
    const flat=reduced||!depthSupported;
    // Travel round the RIGHT edge, then look back into the next screen. Rotating
    // at the eye (the perspective distance) makes the turn read as a real orbit.
@@ -171,7 +173,7 @@
    // Retire the current words with the departing frame; reveal the next title
    // as its screen swings into view. Both settle before playback changes clips.
    if(flat){poseTitle(titleWords,0,false);poseTitle(incomingWords,0,true);}
-   else if(leave>0){poseTitle(titleWords,clamp(leave/.50),false);poseTitle(incomingWords,clamp((leave-.12)/.68),true);}
+   else if(leave>0){poseTitle(titleWords,clamp(leave/.75),false);poseTitle(incomingWords,clamp((leave-.25)/.65),true);}
    else{poseTitle(titleWords,clamp(titleEntry/1.6),true);poseTitle(incomingWords,0,true);}
    progress.style.width=`${(index+Math.min(1,t/d))/tracks.length*100}%`;
   }requestAnimationFrame(frame);
