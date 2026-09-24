@@ -27,7 +27,7 @@
     const layer = document.createElement('div');
     layer.className = 'kwe-aperture is-preparing';
     layer.setAttribute('aria-label', 'Saint Kwe opening animation');
-    layer.innerHTML = '<div class="kwe-aperture-curtain top"></div><div class="kwe-aperture-curtain bottom"></div><div class="kwe-aperture-film is-loading" aria-hidden="true"><video muted playsinline preload="metadata" poster="assets/optimized/intro-poster.webp"><source data-src="assets/july20-intro.mp4?v=original-restored" type="video/mp4"></video></div><div class="kwe-aperture-line" aria-hidden="true"></div><p class="kwe-aperture-title" aria-hidden="true"><span class="kwe-aperture-outline">SAINT KWE</span><span class="kwe-aperture-fill">SAINT KWE</span><span class="kwe-aperture-crest">SAINT KWE</span></p>';
+    layer.innerHTML = '<div class="kwe-aperture-curtain top"></div><div class="kwe-aperture-curtain bottom"></div><div class="kwe-aperture-film is-loading" aria-hidden="true"><video muted playsinline preload="metadata" poster="assets/optimized/intro-poster.webp"><source data-src="assets/july20-intro.mp4?v=original-restored" type="video/mp4"></video></div><div class="kwe-aperture-line" aria-hidden="true"></div><p class="kwe-aperture-title" aria-hidden="true"><span class="kwe-aperture-outline">SAINT KWE</span><span class="kwe-aperture-fill">SAINT KWE</span></p>';
     document.body.append(layer);
     const inertTargets=[...document.body.children].filter(el=>el!==layer&&el.tagName!=='SCRIPT').map(el=>[el,el.inert]);
     inertTargets.forEach(([el])=>el.inert=true);
@@ -55,17 +55,6 @@
     skip.hidden = true;
     const title = layer.querySelector('.kwe-aperture-title');
     const fill = layer.querySelector('.kwe-aperture-fill');
-    const crest = layer.querySelector('.kwe-aperture-crest');
-    // Object-bounding-box masks preserve the real text and its handoff geometry.
-    const masks = document.createElementNS('http://www.w3.org/2000/svg','svg');
-    masks.setAttribute('width','0');masks.setAttribute('height','0');
-    masks.setAttribute('aria-hidden','true');masks.style.position='absolute';
-    masks.innerHTML='<defs><clipPath id="kwe-molten-fill" clipPathUnits="objectBoundingBox"><path/></clipPath><clipPath id="kwe-molten-crest" clipPathUnits="objectBoundingBox"><path/></clipPath></defs>';
-    layer.append(masks);
-    const liquidPath=masks.querySelector('#kwe-molten-fill path');
-    const crestPath=masks.querySelector('#kwe-molten-crest path');
-    let moltenFrame;
-
     const line = layer.querySelector('.kwe-aperture-line');
     // The centre slit belongs to the footage reveal. Keeping it outside the
     // film let it flash before the video opacity animation had even started.
@@ -95,7 +84,6 @@
       window.removeEventListener('resize', resized);
       document.removeEventListener('visibilitychange', visibilityChanged);
       animations.forEach(animation => animation.cancel());
-      cancelAnimationFrame(moltenFrame);
       video.pause();
       video.removeAttribute('src');
       video.load();
@@ -116,31 +104,43 @@
       animation.finished.catch(() => {});
       animations.push(animation);return animation;
     };
-    const moltenFill = () => {
-      const clock=animate(layer,[{},{}],2300,0,'linear');
-      const clamp=value=>Math.max(0,Math.min(1,value));
-      const ease=value=>value*value*(3-2*value);
-      fill.style.clipPath='url(#kwe-molten-fill)';
-      crest.style.clipPath='url(#kwe-molten-crest)';
-      const draw = () => {
-        if(done)return;
-        const ms=Number(clock.currentTime)||0;
-        const progress=ease(clamp((ms-300)/1750));
-        const settle=ease(clamp((ms-1900)/350));
-        const level=1.45-progress*2, amplitude=.1*Math.sin(progress*Math.PI)*(1-settle);
-        const points=[];
-        for(let x=-.15;x<=1.151;x+=.013){
-          const y=level+Math.sin(x*15-ms*.002)*amplitude+Math.sin(x*30+ms*.0013)*amplitude*.22+(x-.5)*.18*Math.sin(progress*Math.PI);
-          points.push([x,y]);
-        }
-        const path=points.map(([x,y],i)=>(i?'L':'M')+x.toFixed(4)+' '+y.toFixed(4)).join(' ');
-        liquidPath.setAttribute('d',path+' L1.2 1.6 L-.2 1.6 Z');
-        crestPath.setAttribute('d',path+' '+[...points].reverse().map(([x,y])=>'L'+x.toFixed(4)+' '+(y+.012).toFixed(4)).join(' ')+' Z');
-        crest.style.opacity=String(1-settle);
-        if(ms<2300)moltenFrame=requestAnimationFrame(draw);
-        else {fill.style.clipPath='inset(-.5em -.12em -.5em -.12em)';crest.style.opacity='0';}
+    const drawOutline = () => {
+      const guide=layer.querySelector('.kwe-aperture-outline');
+      const style=getComputedStyle(guide), size=parseFloat(style.fontSize);
+      const width=guide.offsetWidth,height=guide.offsetHeight;
+      const canvas=document.createElement('canvas').getContext('2d');
+      canvas.font=`${style.fontWeight} ${size}px ${style.fontFamily}`;
+      const metrics=canvas.measureText('SAINT KWE');
+      const ascent=metrics.fontBoundingBoxAscent??size*.9;
+      const descent=metrics.fontBoundingBoxDescent??size*.25;
+      const baseline=(height-ascent-descent)/2+ascent;
+      const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+      svg.classList.add('kwe-aperture-drawing');
+      svg.setAttribute('width',width);svg.setAttribute('height',height);
+      svg.setAttribute('aria-hidden','true');
+      const makeStroke = className => {
+        const text=document.createElementNS(svg.namespaceURI,'text');
+        text.textContent='SAINT KWE';text.setAttribute('x','0');text.setAttribute('y',baseline);
+        text.style.fontFamily=style.fontFamily;text.style.fontWeight=style.fontWeight;
+        text.style.fontSize=size+'px';text.style.letterSpacing=style.letterSpacing;
+        text.setAttribute('textLength',width);text.setAttribute('lengthAdjust','spacingAndGlyphs');
+        text.setAttribute('class',className);text.style.strokeWidth=Math.max(1.8,size*.012)+'px';
+        svg.append(text);return text;
       };
-      draw();
+      const stroke=makeStroke('kwe-outline-stroke');
+      const shine=makeStroke('kwe-outline-shine');
+      title.append(svg);
+      // Dash lengths scale with the type so the phone draw lasts as long as desktop.
+      const length=size*6;
+      stroke.style.strokeDasharray=String(length);
+      shine.style.strokeDasharray=`${size*.14} ${length}`;
+      animate(stroke,[{strokeDashoffset:String(length)},{strokeDashoffset:'0'}],3000,150,'linear');
+      animate(shine,[{strokeDashoffset:String(length),opacity:0},{opacity:.75,offset:.18},{opacity:.75,offset:.8},{strokeDashoffset:'0',opacity:0}],3000,150,'linear');
+      animate(guide,[{opacity:.16},{opacity:.16}],3750,0,'linear');
+      // Hold the completed outline, then resolve as one clean word, without a sweep.
+      fill.style.clipPath='inset(-.5em -.12em -.5em -.12em)';
+      animate(fill,[{opacity:0},{opacity:1}],280,3500,'ease-in-out');
+      animate(svg,[{opacity:1},{opacity:0}],280,3500,'ease-in-out');
     };
     // These clocks pause with the visual animations when playback buffers.
     const afterPlayback = (duration, callback) => {
@@ -161,9 +161,9 @@
       // Fade the centre slit and footage together as the aperture opens outward.
       animate(film, [{opacity:0},{opacity:1}], 1100, 250, 'cubic-bezier(.4,0,.6,1)');
       animate(title, [{opacity:1,transform:'scale(.92)'},{opacity:1,transform:'scale(1)'}], 1150, 300);
-      moltenFill();
+      drawOutline();
       // Carry the same title into the real homepage heading while the aperture opens.
-      afterPlayback(2400,()=>{
+      afterPlayback(3800,()=>{
         if(done)return;
         try{
           const range=document.createRange();range.selectNodeContents(heading);
