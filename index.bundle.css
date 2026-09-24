@@ -439,7 +439,6 @@ html.aperture-handoff .wordmark-stage h1{visibility:hidden}
 
 /* Immediate, readable outline while the first decoded frame is pending. */
 .kwe-aperture.is-preparing{background:#050505}
-.kwe-aperture.is-preparing .kwe-aperture-title{opacity:1}
 .kwe-aperture.is-preparing .kwe-aperture-film{visibility:hidden}
 .kwe-aperture-controls{position:absolute;z-index:2;left:5%;right:5%;bottom:max(28px,env(safe-area-inset-bottom));text-align:center;color:#ddd;font:400 12px/1.5 Inter,Arial,sans-serif}
 .kwe-aperture-controls button{min-height:44px;margin:4px 8px;padding:8px 14px;border:1px solid #777;background:#050505;color:#fff;font:inherit;cursor:pointer}
