@@ -41,7 +41,7 @@ body.previewing #inspect span{background:#000b;margin:4px;padding:8px 12px}
 .exit{color:#fff;font-size:13px;padding:0 16px;min-height:44px;background:#171717;border-radius:3px}
 .track-caption{padding-bottom:8px}
 .flight-panel{cursor:pointer;display:block}
-.flight-panel:after{content:'Watch full video ↗';position:absolute;bottom:14px;right:14px;padding:8px 12px;background:#000b;color:#fff;font-size:12px;opacity:0;transition:opacity .18s;pointer-events:none}
+.flight-panel:after{content:'Watch full video';position:absolute;bottom:14px;right:14px;padding:8px 12px;background:#000b;color:#fff;font-size:12px;opacity:0;transition:opacity .18s;pointer-events:none}
 .flight-panel:hover:after,.flight-panel:focus-visible:after{opacity:1}
 .flight-panel:focus-visible{outline:2px solid #ff3038;outline-offset:-3px}
 @media(hover:none){.flight-panel:after{opacity:1}}
@@ -168,3 +168,11 @@ html.kwe-route:not(.kwe-route-cover)::before,html.kwe-route:not(.kwe-route-cover
 #watch:focus-visible{outline:2px solid #fff;outline-offset:4px}
 @media(max-width:600px){#watch{min-height:48px;padding:12px 20px;margin-top:8px;font-size:13px}}
 @media(prefers-reduced-motion:reduce){#watch{transition:none}#watch:hover,#watch:active{transform:none}}
+
+/* Draw action symbols as SVG instead of relying on each phone's emoji font. */
+.action-icon{display:inline-grid;place-items:center;flex:0 0 22px;width:22px;height:22px;border:1px solid currentColor;border-radius:50%;background:#00000012}
+.action-icon svg{display:block;width:14px;height:14px}
+#watch{gap:10px}
+.experience-actions .exit{gap:7px}
+.experience-actions .exit .action-icon{width:20px;height:20px;flex-basis:20px}
+@media(max-width:360px){.experience-actions .exit .action-icon{width:18px;height:18px;flex-basis:18px}.arrival-actions #replay,.arrival-actions .arrival-return{gap:5px}.arrival-actions .action-icon{width:20px;height:20px;flex-basis:20px}}

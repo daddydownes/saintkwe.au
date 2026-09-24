@@ -7,6 +7,23 @@
   let enabled = false;
   let queued = false;
   const step = 420;
+  function showLinkIcon(symbol) {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('width', '18');
+    svg.setAttribute('height', '18');
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', '1.8');
+    svg.setAttribute('stroke-linecap', 'round');
+    svg.setAttribute('stroke-linejoin', 'round');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('focusable', 'false');
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', 'M5 19 19 5M8 5h11v11');
+    svg.append(path);
+    symbol.replaceChildren(svg);
+  }
   function select(index) {
     if (index === active) return;
     active = index;
@@ -46,7 +63,7 @@
       rows.forEach(row => {
         row.classList.remove('active');
         row.querySelector('button').setAttribute('aria-expanded', 'true');
-        row.querySelector('.reveal-symbol').textContent = '↗';
+        showLinkIcon(row.querySelector('.reveal-symbol'));
         row.querySelector('.video-image').inert = false;
         row.querySelector('.video-image').removeAttribute('aria-hidden');
       });

@@ -297,8 +297,8 @@ footer>a,.scroll-cue{transition:color .2s ease}
 .hero .platform-link:nth-child(1){grid-column:1;grid-row:1}
 .hero .platform-link:nth-child(2){grid-column:2;grid-row:2}
 .hero .platform-link:nth-child(3){grid-column:1;grid-row:3}
-.hero .platform-link:nth-child(1):after{content:'↘';left:calc(100% + 18px);top:70%}
-.hero .platform-link:nth-child(2):after{content:'↙';right:calc(100% + 18px);top:70%}
+.hero .platform-link:nth-child(1):after{content:none;left:calc(100% + 18px);top:70%}
+.hero .platform-link:nth-child(2):after{content:none;right:calc(100% + 18px);top:70%}
 .hero .scroll-cue{bottom:35px;left:50%;transform:translateX(-50%);white-space:nowrap}
 .mock-nav{bottom:8px}.mock-nav a{padding:8px 10px}
 @media(max-width:600px){.hero .platform-group{width:88vw;padding-top:18svh}.hero .platform-links{gap:0 24px}.hero .platform-link{--icon-size:62px;min-width:75px;min-height:105px;gap:8px}.hero .platform-link:after{font-size:34px}.hero .platform-link:nth-child(1):after{left:calc(100% + 10px)}.hero .platform-link:nth-child(2):after{right:calc(100% + 10px)}}
@@ -308,8 +308,8 @@ footer>a,.scroll-cue{transition:color .2s ease}
 .hero .platform-link:nth-child(1){grid-column:1;grid-row:1;transform:translateY(25px)}
 .hero .platform-link:nth-child(2){grid-column:2;grid-row:1;transform:translateY(-15px)}
 .hero .platform-link:nth-child(3){grid-column:1/-1;grid-row:2}
-.hero .platform-link:nth-child(1):after{content:'↗';top:15%;left:calc(100% + 20px)}
-.hero .platform-link:nth-child(2):after{content:'↙';top:110%;right:70%}
+.hero .platform-link:nth-child(1):after{content:none;top:15%;left:calc(100% + 20px)}
+.hero .platform-link:nth-child(2):after{content:none;top:110%;right:70%}
 
 .hero .platform-link:after{content:none!important;display:none!important}
 .contact h2{text-align:center;width:100%}
@@ -511,3 +511,7 @@ body[data-front='3'] .hero .flight-launch:focus-visible{outline:3px solid #ff303
 @media(max-width:600px) and (max-height:440px){body[data-front='3'] .hero .platform-link{--icon-size:42px;min-height:50px}}
 @media(min-width:601px) and (max-height:500px) and (min-aspect-ratio:1/1){body[data-front='3'] .hero .flight-launch{top:43%;min-height:54px;padding:9px 16px;gap:14px;font-size:16px}.flight-launch-icon{width:34px;height:34px;flex-basis:34px}.flight-launch-icon svg{width:15px;height:15px}}
 @media(prefers-reduced-motion:reduce){body[data-front='3'] .hero .flight-launch,.flight-launch-icon{transition:none}}
+
+/* Use a drawn external-link mark so phone fonts cannot turn the arrow into emoji. */
+.video-caption .video-arrow{display:inline-grid;place-items:center;width:19px;height:19px;margin-left:5px;vertical-align:middle;border:1px solid #ffffffa6;border-radius:50%;background:#0007;color:#fff}
+.video-caption .video-arrow svg{display:block;width:12px;height:12px}

@@ -233,3 +233,9 @@ footer>a,.scroll-cue{transition:color .2s ease}
 @keyframes kwe-sound-ripple{0%{scale:.15;opacity:0}20%{opacity:.8}100%{scale:1.7;opacity:0}}
 
 .catalogue-header{padding:24px 5%;display:flex;align-items:center;justify-content:space-between;gap:20px}.catalogue-header a{display:flex;align-items:center;min-height:44px;font-size:12px}.catalogue-title{padding:36px 5% 0;font:900 clamp(48px,10vw,140px)/.95 var(--display);letter-spacing:-.035em;color:#ff3038;white-space:normal}#more-videos{padding-top:40px}
+
+.catalogue-return{gap:7px;white-space:nowrap}
+.catalogue-arrow{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;flex:0 0 15px}
+.catalogue-arrow svg{display:block;width:100%;height:100%}
+.video-scroll-hint .catalogue-arrow{width:17px;height:17px;flex-basis:17px}
+.reveal-symbol svg{display:block;width:18px;height:18px;margin-left:auto}

@@ -6,6 +6,10 @@ img{height:auto}.hero-copy{padding:0}.hero-portrait img{height:auto}@media(min-w
 /* Keep secondary text legible on small screens. */
 @media(max-width:600px){.hero-meta,.section-tag,.duration,.video-caption>span,footer{font-size:12px}.hero-copy>.primary,.hero-copy>.quiet-link{font-size:14px}.archive-heading p{font-size:16px}.section-top{flex-wrap:wrap}.hero-copy{grid-template-columns:1fr}.hero-statement{grid-row:auto}.hero-copy>.primary{width:fit-content}.hero-copy>.quiet-link{margin-top:0}}
 
+/* Use a drawn external-link mark so phone fonts cannot turn the arrow into emoji. */
+.video-caption .video-arrow{display:inline-grid;place-items:center;width:19px;height:19px;margin-left:5px;vertical-align:middle;border:1px solid #ffffffa6;border-radius:50%;background:#0007;color:#fff}
+.video-caption .video-arrow svg{display:block;width:12px;height:12px}
+
 /* No decorative dividers between page sections or content rows. */
 header,main,footer,section,.hero-meta,.section-top,.release-list>a,.video-rows>a,.contact-handle{border:0!important;box-shadow:none!important}
 hr,[role="separator"]{display:none!important}
