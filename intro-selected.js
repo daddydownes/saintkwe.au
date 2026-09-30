@@ -142,8 +142,6 @@
       svg.innerHTML='<defs><text id="kwe-trace-word" x="700" y="340" text-anchor="middle" style="font-family:Barlow Condensed,Impact,sans-serif;font-size:260px;font-weight:900;letter-spacing:-10px">SAINT KWE</text><filter id="kwe-trace-bloom" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4"/></filter></defs><use class="kwe-outline-bloom" href="#kwe-trace-word" filter="url(#kwe-trace-bloom)"/><use class="kwe-outline-stroke" href="#kwe-trace-word"/>';
       const trace=svg.querySelector('text');
       trace.style.fontFamily=style.fontFamily;
-      trace.setAttribute('textLength',guide.scrollWidth/scale);
-      trace.setAttribute('lengthAdjust','spacingAndGlyphs');
       title.append(svg);
       const stroke=svg.querySelector('.kwe-outline-stroke'), bloom=svg.querySelector('.kwe-outline-bloom');
       stroke.style.strokeWidth=Math.max(2.4,1.8/scale)+'px';
@@ -155,7 +153,8 @@
       animate(guide,[{opacity:.4},{opacity:.4}],outlineLead+2400,0,'linear');
       // Adapt the demo's warm blurred crest into an outline-completion glow.
       animate(bloom,[{opacity:0},{opacity:.65,offset:.5},{opacity:0}],650,1250,'ease-in-out');
-      animate(svg,[{opacity:1},{opacity:0}],220,outlineLead+1950,'ease-in-out');
+      // The HTML outline stays aligned with the fill as the red wipe begins.
+      animate(svg,[{opacity:1},{opacity:0}],220,outlineLead+430,'ease-in-out');
     };
     // These clocks pause with the visual animations when playback buffers.
     const afterPlayback = (duration, callback) => {
