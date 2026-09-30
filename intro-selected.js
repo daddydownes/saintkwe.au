@@ -63,8 +63,11 @@
     let done = false;
     let downloadController = new AbortController();
     let clipObjectUrl, pendingPlay, playAttempt = 0, nativePlayback = false;
-    const fontReady = Promise.race([document.fonts.ready,new Promise(resolve=>setTimeout(resolve,1200))]);
-    let recoveryTimer, skipTimer, frameRequest, fontsReady = false, frameReady = false, buffering = true;
+    const fontReady = Promise.race([
+      document.fonts.load('900 260px "Barlow Condensed"', 'SAINT KWE').catch(()=>[]),
+      new Promise(resolve=>setTimeout(resolve,1200))
+    ]);
+    let recoveryTimer, skipTimer, frameTimer, watchdog, frameRequest, fontsReady = false, frameReady = false, buffering = true;
     const heading=document.querySelector('.wordmark-stage h1');
     const previousOverflow = root.style.overflow;
     root.style.overflow = 'hidden';
@@ -79,6 +82,8 @@
       activeFinish = null;
       clearTimeout(recoveryTimer);
       clearTimeout(skipTimer);
+      clearTimeout(frameTimer);
+      clearTimeout(watchdog);
       if(frameRequest != null) video.cancelVideoFrameCallback?.(frameRequest);
       root.classList.remove('aperture-handoff');
       window.removeEventListener('resize', resized);
@@ -101,6 +106,17 @@
       reduced.removeEventListener?.('change', motionChanged);
 
     };
+    activeFinish=finish;
+    // Media and animation failures must never strand an inert, covered page.
+    watchdog=setTimeout(finish,30000);
+    const fitTitle = () => {
+      title.style.fontSize='';
+      const guide=layer.querySelector('.kwe-aperture-outline');
+      const size=parseFloat(getComputedStyle(title).fontSize);
+      const available=Math.max(1,layer.clientWidth-32);
+      if(guide.scrollWidth>available)title.style.fontSize=(size*available/guide.scrollWidth)+'px';
+    };
+    fitTitle();
     const animate = (element, frames, duration, delay = 0, easing = 'cubic-bezier(.22,1,.36,1)') => {
       const animation=element.animate(frames, {duration, delay, easing, fill:'both'});
       animation.finished.catch(() => {});
@@ -124,6 +140,10 @@
       // The FIRST demo's exact text, viewBox, dash length, smoothstep draw and scale.
       // Keep its trace shape; only stroke weight is increased for the live opening.
       svg.innerHTML='<defs><text id="kwe-trace-word" x="700" y="340" text-anchor="middle" style="font-family:Barlow Condensed,Impact,sans-serif;font-size:260px;font-weight:900;letter-spacing:-10px">SAINT KWE</text><filter id="kwe-trace-bloom" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4"/></filter></defs><use class="kwe-outline-bloom" href="#kwe-trace-word" filter="url(#kwe-trace-bloom)"/><use class="kwe-outline-stroke" href="#kwe-trace-word"/>';
+      const trace=svg.querySelector('text');
+      trace.style.fontFamily=style.fontFamily;
+      trace.setAttribute('textLength',guide.scrollWidth/scale);
+      trace.setAttribute('lengthAdjust','spacingAndGlyphs');
       title.append(svg);
       const stroke=svg.querySelector('.kwe-outline-stroke'), bloom=svg.querySelector('.kwe-outline-bloom');
       stroke.style.strokeWidth=Math.max(2.4,1.8/scale)+'px';
@@ -131,7 +151,8 @@
       const smoothstep='cubic-bezier(.333333,0,.666667,1)';
       animate(stroke,[{strokeDashoffset:'1100',opacity:.35},{strokeDashoffset:'0',opacity:1}],1500,0,smoothstep);
       animate(title,[{opacity:1,transform:'scale(.975)'},{opacity:1,transform:'scale(1)'}],4600,0,smoothstep);
-      animate(guide,[{opacity:0},{opacity:0}],outlineLead+2400,0,'linear');
+      // Keep the complete HTML outline underneath the decorative SVG trace.
+      animate(guide,[{opacity:.4},{opacity:.4}],outlineLead+2400,0,'linear');
       // Adapt the demo's warm blurred crest into an outline-completion glow.
       animate(bloom,[{opacity:0},{opacity:.65,offset:.5},{opacity:0}],650,1250,'ease-in-out');
       animate(svg,[{opacity:1},{opacity:0}],220,outlineLead+1950,'ease-in-out');
@@ -143,11 +164,15 @@
     };
     const start = () => {
       if (started || done || !fontsReady || !frameReady || buffering || document.hidden) return;
+      try {
       started = true;
       window.dispatchEvent(new Event('kwe:intro-ready'));
       if (reduced.matches || !layer.animate) { finish(); return; }
       settle();
       if(heading){const headingStyle=getComputedStyle(heading);title.style.fontFamily=headingStyle.fontFamily;title.style.fontWeight=headingStyle.fontWeight;title.style.letterSpacing='-.038461538em';}
+      // Freeze a consistent fallback face if the display font missed its deadline.
+      if(!document.fonts.check('900 260px "Barlow Condensed"','SAINT KWE'))title.style.fontFamily='Impact, sans-serif';
+      fitTitle();
       layer.classList.remove('is-preparing');
       controls.hidden = true;
       root.classList.add('aperture-handoff');
@@ -185,6 +210,7 @@
           afterPlayback(1860,finish);
         }catch{finish();}
       });
+      } catch { finish(); }
     };
     function recovery(message) {
       if(done)return;
@@ -196,15 +222,18 @@
     function waiting() {
       if(done)return;
       buffering=true;frameReady=false;
+      clearTimeout(frameTimer);
       film.classList.add('is-loading');
       animations.forEach(animation=>{if(animation.playState==='running')animation.pause();});
       clearTimeout(recoveryTimer);
-      recoveryTimer=setTimeout(()=>recovery('Still loading. You can retry the opening.'),15000);
+      recoveryTimer=setTimeout(finish,15000);
     }
     function decoded() {
+      if(frameRequest != null)video.cancelVideoFrameCallback?.(frameRequest);
       frameRequest=null;
       if(done || document.hidden || video.paused || video.readyState<2)return;
       frameReady=true;buffering=false;
+      clearTimeout(frameTimer);
       clearTimeout(recoveryTimer);
       film.classList.add('has-frame');film.classList.remove('is-loading');
       controls.hidden=true;
@@ -216,6 +245,9 @@
       if(frameRequest != null)video.cancelVideoFrameCallback?.(frameRequest);
       if(video.requestVideoFrameCallback)frameRequest=video.requestVideoFrameCallback(decoded);
       else decoded();
+      // Hidden video layers need not be composited on WebKit. A playing video
+      // with current frame data can start even when its compositor callback waits.
+      frameTimer=setTimeout(decoded,250);
     }
     function play(restart = false) {
       if(done || document.hidden || (pendingPlay && !restart))return;
@@ -271,18 +303,16 @@
     video.loop=true;
     retry.addEventListener('click',()=>play(true));
     skip.addEventListener('click',finish);
-    // A normal connection sees only the outline and footage. Keep an escape
-    // available after 15 seconds, even if repeated media events reset recovery.
+    // This deadline is independent of repeated waiting events.
     skipTimer=setTimeout(()=>{
       if(done)return;
       skip.hidden=false;
-      if(buffering || !started){controls.hidden=false;status.textContent='The opening is taking longer to load.';}
+      if(buffering || !started)finish();
     },15000);
     // Mobile browser address bars change height without changing the layout width.
-    function resized(){if(started && Math.abs(innerWidth-initialWidth)>2)finish();}
+    function resized(){if(started && Math.abs(innerWidth-initialWidth)>2)finish();else if(!started)fitTitle();}
     function visibilityChanged(){if(document.hidden){waiting();video.pause();}else play();}
     function motionChanged(event) { if (event.matches) finish(); }
-    activeFinish=finish;
     window.addEventListener('hashchange', finish);
     window.addEventListener('pagehide', finish);
     reduced.addEventListener?.('change', motionChanged);
